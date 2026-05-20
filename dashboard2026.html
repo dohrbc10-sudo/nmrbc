@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>NORTHERN MINDANAO REGIONAL BLOOD CENTER FILES DASHBOARD</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(80, 0, 0, 0.78), rgba(20, 0, 0, 0.9)),
+        radial-gradient(circle at top left, #b30000, #2b0000 65%);
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      width: 100%;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .datetime {
+      font-size: 15px;
+      font-weight: bold;
+      color: #ffe6e6;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .main-title {
+      text-align: center;
+      margin-top: 20px;
+      padding: 0 20px;
+    }
+
+    .main-title h1 {
+      font-size: 34px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #ffffff;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    }
+
+    .main-title p {
+      margin-top: 10px;
+      color: #ffd6d6;
+      font-size: 15px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 30px;
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+    }
+
+    .panel h2 {
+      font-size: 20px;
+      margin-bottom: 18px;
+      color: #ffffff;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+      padding-bottom: 10px;
+    }
+
+    .left-options {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .center-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .system-card {
+      display: block;
+      text-decoration: none;
+      color: #ffffff;
+      background: linear-gradient(145deg, #a00000, #5c0000);
+      border-radius: 16px;
+      padding: 24px;
+      min-height: 140px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+      transition: 0.25s ease;
+    }
+
+    .system-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      background: linear-gradient(145deg, #c20000, #720000);
+      box-shadow: 0 14px 26px rgba(0, 0, 0, 0.45);
+    }
+
+    .system-card::after {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      right: -35px;
+      bottom: -35px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 50%;
+    }
+
+    .system-card .icon {
+      font-size: 34px;
+      margin-bottom: 14px;
+    }
+
+    .system-card h3 {
+      font-size: 19px;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .system-card span {
+      font-size: 13px;
+      color: #ffdede;
+      word-break: break-all;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #ffd6d6;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 800px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+        padding: 24px;
+      }
+
+      .main-title h1 {
+        font-size: 24px;
+      }
+
+      .top-bar {
+        justify-content: center;
+      }
+
+      .datetime {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="top-bar">
+    <div class="datetime" id="datetime">Loading date and time...</div>
+  </div>
+
+  <section class="main-title">
+    <h1>NORTHERN MINDANAO REGIONAL BLOOD CENTER FILES DASHBOARD</h1>
+    <p>Quick access portal for NMRBC systems and files</p>
+  </section>
+
+  <main class="dashboard">
+
+    <!-- LEFT FIELD OPTIONS -->
+    <aside class="panel">
+      <h2>External Systems</h2>
+
+      <div class="left-options">
+
+        <a class="system-card"
+           href="https://192.168.100.98/doctracking/main/"
+           target="_blank"
+           rel="noopener noreferrer">
+          <div class="icon">📂</div>
+          <h3>DOH DTRACKING SYSTEM</h3>
+          <span>https://192.168.100.98/doctracking/main/</span>
+        </a>
+
+        <a class="system-card"
+           href="http://192.168.100.241/portals/default/"
+           target="_blank"
+           rel="noopener noreferrer">
+          <div class="icon">🗄️</div>
+          <h3>Document Management & Archiving System</h3>
+          <span>http://192.168.100.241/portals/default/</span>
+        </a>
+
+      </div>
+    </aside>
+
+    <!-- CENTER OPTIONS -->
+    <section class="panel">
+      <h2>Main Dashboard</h2>
+
+      <div class="center-options">
+
+        <a class="system-card"
+           href="http://11.11.40.31:8181/v4/"
+           target="_blank"
+           rel="noopener noreferrer">
+          <div class="icon">🩸</div>
+          <h3>NMRBC SYSTEM V4</h3>
+          <span>http://11.11.40.31:8181/v4/</span>
+        </a>
+
+        <a class="system-card"
+           href="https://docs.google.com/spreadsheets/d/1qbAUUuX5ZhWLbATWYQlEVGiwaMGQ-3QQ/edit?gid=199191176#gid=199191176"
+           target="_blank"
+           rel="noopener noreferrer">
+          <div class="icon">📅</div>
+          <h3>Staff Duty Schedule</h3>
+          <span>Google Sheets schedule file</span>
+        </a>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    Northern Mindanao Regional Blood Center | Files Dashboard
+  </footer>
+
+  <script>
+    function updateDateTime() {
+      const now = new Date();
+
+      const options = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+      };
+
+      document.getElementById("datetime").textContent =
+        now.toLocaleString("en-PH", options);
+    }
+
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+  </script>
+
+</body>
+</html>
