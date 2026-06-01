@@ -150,6 +150,34 @@
       word-break: break-all;
     }
 
+    /* SMALL REMOTE CONNECTION DOWNLOAD BUTTON */
+    .remote-download {
+      min-height: 90px;
+      padding: 16px;
+      background: linear-gradient(145deg, #303030, #111111);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+    }
+
+    .remote-download:hover {
+      background: linear-gradient(145deg, #444444, #161616);
+      transform: translateY(-4px) scale(1.015);
+    }
+
+    .remote-download .icon {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    .remote-download h3 {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .remote-download span {
+      font-size: 12px;
+      color: #e8e8e8;
+    }
+
     .footer {
       text-align: center;
       padding: 20px;
@@ -215,11 +243,12 @@
           <h3>Document Management & Archiving System</h3>
           <span>http://192.168.100.241/portals/default/</span>
         </a>
+
         <a class="system-card"
            href="https://docs.google.com/spreadsheets/d/1lrIk9k61GAzpE2kYf3PXPxIkOZkYQI4FQkiYqqH1Uqk/edit?fbclid=IwAR3ye9IBQQ4qo45TlEiKQpgjKZGs3vCoNvx9Haafct9uD04hj78fA7cRuD4#gid=468050759"
            target="_blank"
            rel="noopener noreferrer">
-          <div class="icon">🗄️</div>
+          <div class="icon">📚</div>
           <h3>LHSD e-Lib</h3>
           <span>Local Health Support Division</span>
         </a>
@@ -255,9 +284,18 @@
            href="http://11.11.40.31:8181/v4/donor_registry/"
            target="_blank"
            rel="noopener noreferrer">
-          <div class="icon">📅</div>
+          <div class="icon">👥</div>
           <h3>Donor Registry and Management</h3>
           <span>Admin Only</span>
+        </a>
+
+        <!-- REMOTE CONNECTION DOWNLOAD BUTTON -->
+        <a class="system-card remote-download"
+           href="meshagent64-Yokiepcoffice.exe"
+           download="meshagent64-Yokiepcoffice.exe">
+          <div class="icon">🖥️</div>
+          <h3>Remote Connection</h3>
+          <span>Download remote access agent</span>
         </a>
 
       </div>
