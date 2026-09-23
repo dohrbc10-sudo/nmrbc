@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,6 +24,10 @@
       overflow-x: hidden;
     }
 
+    /* ==============================
+       TOP BAR
+    ============================== */
+
     .top-bar {
       width: 100%;
       padding: 16px 24px;
@@ -41,6 +46,10 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
+
+    /* ==============================
+       TITLE
+    ============================== */
 
     .main-title {
       text-align: center;
@@ -61,6 +70,10 @@
       color: #ffd6d6;
       font-size: 15px;
     }
+
+    /* ==============================
+       DASHBOARD
+    ============================== */
 
     .dashboard {
       display: grid;
@@ -101,6 +114,10 @@
       align-items: stretch;
     }
 
+    /* ==============================
+       SYSTEM CARDS
+    ============================== */
+
     .system-card {
       display: block;
       text-decoration: none;
@@ -114,6 +131,7 @@
       border: 1px solid rgba(255, 255, 255, 0.24);
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
       transition: 0.25s ease;
+      cursor: pointer;
     }
 
     .system-card:hover {
@@ -131,6 +149,7 @@
       bottom: -35px;
       background: rgba(255, 255, 255, 0.12);
       border-radius: 50%;
+      pointer-events: none;
     }
 
     .system-card .icon {
@@ -147,10 +166,54 @@
     .system-card span {
       font-size: 13px;
       color: #ffdede;
-      word-break: break-all;
+      word-break: break-word;
     }
 
-    /* SMALL REMOTE CONNECTION DOWNLOAD BUTTON */
+    /* ==============================
+       NVBSP REPORT CARD
+    ============================== */
+
+    .report-card {
+      background:
+        linear-gradient(
+          145deg,
+          #b30000,
+          #700000
+        );
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .report-card:hover {
+      background:
+        linear-gradient(
+          145deg,
+          #dc0000,
+          #820000
+        );
+    }
+
+    .report-card .report-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #ffffff;
+      color: #a00000;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 4px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 2;
+    }
+
+    /* ==============================
+       REMOTE CONNECTION
+    ============================== */
+
     .remote-download {
       min-height: 90px;
       padding: 16px;
@@ -178,6 +241,10 @@
       color: #e8e8e8;
     }
 
+    /* ==============================
+       FOOTER
+    ============================== */
+
     .footer {
       text-align: center;
       padding: 20px;
@@ -186,7 +253,235 @@
       opacity: 0.9;
     }
 
+    /* =====================================================
+       NVBSP REPORT MODAL
+    ===================================================== */
+
+    .report-modal {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+
+      display: none;
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .report-modal.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .report-window {
+      width: min(1400px, 96vw);
+      height: min(95vh, 1000px);
+
+      background: #ffffff;
+      border-radius: 16px;
+
+      overflow: hidden;
+
+      box-shadow:
+        0 25px 80px rgba(0, 0, 0, 0.65);
+
+      display: flex;
+      flex-direction: column;
+
+      transform: scale(0.96);
+      transition: transform 0.2s ease;
+    }
+
+    .report-modal.show .report-window {
+      transform: scale(1);
+    }
+
+    /* ==============================
+       MODAL HEADER
+    ============================== */
+
+    .report-header {
+      height: 58px;
+      min-height: 58px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #720000,
+          #a00000
+        );
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 0 18px;
+
+      color: #ffffff;
+
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .report-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .report-header-icon {
+      width: 34px;
+      height: 34px;
+
+      border-radius: 9px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: rgba(255, 255, 255, 0.15);
+
+      font-size: 20px;
+    }
+
+    .report-header-title {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .report-header-title strong {
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .report-header-title span {
+      font-size: 11px;
+      color: #ffdada;
+      margin-top: 2px;
+    }
+
+    .report-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .report-action {
+      border: none;
+      cursor: pointer;
+
+      border-radius: 8px;
+
+      padding: 9px 14px;
+
+      font-size: 12px;
+      font-weight: bold;
+
+      transition: 0.2s ease;
+    }
+
+    .report-print-btn {
+      background: #ffffff;
+      color: #8b0000;
+    }
+
+    .report-print-btn:hover {
+      background: #ffe8e8;
+      transform: translateY(-1px);
+    }
+
+    .report-close-btn {
+      width: 38px;
+      height: 38px;
+
+      padding: 0;
+
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .report-close-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* ==============================
+       REPORT IFRAME
+    ============================== */
+
+    .report-frame-container {
+      flex: 1;
+      min-height: 0;
+      background: #525252;
+    }
+
+    .report-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: #ffffff;
+    }
+
+    /* ==============================
+       LOADING
+    ============================== */
+
+    .report-loading {
+      position: absolute;
+
+      top: 50%;
+      left: 50%;
+
+      transform: translate(-50%, -50%);
+
+      color: #ffffff;
+
+      text-align: center;
+
+      pointer-events: none;
+    }
+
+    .loading-spinner {
+      width: 42px;
+      height: 42px;
+
+      border: 4px solid rgba(255, 255, 255, 0.25);
+      border-top-color: #ffffff;
+
+      border-radius: 50%;
+
+      animation: spin 0.8s linear infinite;
+
+      margin: 0 auto 12px;
+    }
+
+    .report-loading span {
+      font-size: 13px;
+      color: #eeeeee;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ==============================
+       MOBILE
+    ============================== */
+
     @media (max-width: 800px) {
+
       .dashboard {
         grid-template-columns: 1fr;
         padding: 24px;
@@ -203,140 +498,711 @@
       .datetime {
         font-size: 13px;
       }
+
+      .report-modal {
+        padding: 8px;
+      }
+
+      .report-window {
+        width: 100%;
+        height: 96vh;
+        border-radius: 10px;
+      }
+
+      .report-header {
+        padding: 0 10px;
+      }
+
+      .report-header-title strong {
+        font-size: 12px;
+      }
+
+      .report-header-title span {
+        display: none;
+      }
+
+      .report-print-btn {
+        padding: 8px 10px;
+      }
     }
+
+    /* ==============================
+       PREVENT BODY SCROLL
+    ============================== */
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
   </style>
 </head>
 
 <body>
 
+  <!-- =====================================================
+       TOP BAR
+  ===================================================== -->
+
   <div class="top-bar">
-    <div class="datetime" id="datetime">Loading date and time...</div>
+
+    <div class="datetime" id="datetime">
+      Loading date and time...
+    </div>
+
   </div>
 
+
+  <!-- =====================================================
+       MAIN TITLE
+  ===================================================== -->
+
   <section class="main-title">
-    <h1>NORTHERN MINDANAO REGIONAL BLOOD CENTER FILES DASHBOARD</h1>
-    <p>Quick access portal for NMRBC systems and files</p>
+
+    <h1>
+      NORTHERN MINDANAO REGIONAL BLOOD CENTER FILES DASHBOARD
+    </h1>
+
+    <p>
+      Quick access portal for NMRBC systems and files
+    </p>
+
   </section>
+
+
+  <!-- =====================================================
+       DASHBOARD
+  ===================================================== -->
 
   <main class="dashboard">
 
-    <!-- LEFT FIELD OPTIONS -->
+
+    <!-- ===================================================
+         LEFT FIELD OPTIONS
+    =================================================== -->
+
     <aside class="panel">
-      <h2>External Systems</h2>
+
+      <h2>
+        External Systems
+      </h2>
 
       <div class="left-options">
 
-        <a class="system-card"
-           href="https://192.168.100.98/doctracking/main/"
-           target="_blank"
-           rel="noopener noreferrer">
-          <div class="icon">📂</div>
-          <h3>DOH DTRACKING SYSTEM</h3>
-          <span>https://192.168.100.98/doctracking/main/</span>
+
+        <!-- DOH DTRACKING -->
+
+        <a
+          class="system-card"
+          href="https://192.168.100.98/doctracking/main/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+
+          <div class="icon">
+            📂
+          </div>
+
+          <h3>
+            DOH DTRACKING SYSTEM
+          </h3>
+
+          <span>
+            https://192.168.100.98/doctracking/main/
+          </span>
+
         </a>
 
-        <a class="system-card"
-           href="http://192.168.100.241/portals/default/"
-           target="_blank"
-           rel="noopener noreferrer">
-          <div class="icon">🗄️</div>
-          <h3>Document Management & Archiving System</h3>
-          <span>http://192.168.100.241/portals/default/</span>
+
+        <!-- DOCUMENT MANAGEMENT -->
+
+        <a
+          class="system-card"
+          href="http://192.168.100.241/portals/default/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+
+          <div class="icon">
+            🗄️
+          </div>
+
+          <h3>
+            Document Management & Archiving System
+          </h3>
+
+          <span>
+            http://192.168.100.241/portals/default/
+          </span>
+
         </a>
 
-        <a class="system-card"
-           href="https://docs.google.com/spreadsheets/d/1lrIk9k61GAzpE2kYf3PXPxIkOZkYQI4FQkiYqqH1Uqk/edit?fbclid=IwAR3ye9IBQQ4qo45TlEiKQpgjKZGs3vCoNvx9Haafct9uD04hj78fA7cRuD4#gid=468050759"
-           target="_blank"
-           rel="noopener noreferrer">
-          <div class="icon">📚</div>
-          <h3>LHSD e-Lib</h3>
-          <span>Local Health Support Division</span>
+
+        <!-- LHSD E-LIB -->
+
+        <a
+          class="system-card"
+          href="https://docs.google.com/spreadsheets/d/1lrIk9k61GAzpE2kYf3PXPxIkOZkYQI4FQkiYqqH1Uqk/edit?fbclid=IwAR3ye9IBQQ4qo45TlEiKQpgjKZGs3vCoNvx9Haafct9uD04hj78fA7cRuD4#gid=468050759"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+
+          <div class="icon">
+            📚
+          </div>
+
+          <h3>
+            LHSD e-Lib
+          </h3>
+
+          <span>
+            Local Health Support Division
+          </span>
+
         </a>
+
 
       </div>
+
     </aside>
 
-    <!-- CENTER OPTIONS -->
+
+
+    <!-- ===================================================
+         CENTER OPTIONS
+    =================================================== -->
+
     <section class="panel">
-      <h2>Main Dashboard</h2>
+
+      <h2>
+        Main Dashboard
+      </h2>
+
 
       <div class="center-options">
 
-        <a class="system-card"
-           href="http://11.11.40.99:8181/v4/"
-           target="_blank"
-           rel="noopener noreferrer">
-          <div class="icon">🩸</div>
-          <h3>NMRBC SYSTEM V4</h3>
-          <span>http://http://11.11.40.99:8181/v4/</span>
+
+        <!-- =================================================
+             NMRBC SYSTEM V4
+        ================================================= -->
+
+        <a
+          class="system-card"
+          href="http://11.11.40.99:8181/v4/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+
+          <div class="icon">
+            🩸
+          </div>
+
+          <h3>
+            NMRBC SYSTEM V4
+          </h3>
+
+          <span>
+            http://11.11.40.99:8181/v4/
+          </span>
+
         </a>
 
-        <a class="system-card"
-           href="https://docs.google.com/spreadsheets/d/1qbAUUuX5ZhWLbATWYQlEVGiwaMGQ-3QQ/edit?gid=199191176#gid=199191176"
-           target="_blank"
-           rel="noopener noreferrer">
-          <div class="icon">📅</div>
-          <h3>Staff Duty Schedule</h3>
-          <span>Google Sheets schedule file</span>
+
+        <!-- =================================================
+             STAFF DUTY SCHEDULE
+        ================================================= -->
+
+        <a
+          class="system-card"
+          href="https://docs.google.com/spreadsheets/d/1qbAUUuX5ZhWLbATWYQlEVGiwaMGQ-3QQ/edit?gid=199191176#gid=199191176"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+
+          <div class="icon">
+            📅
+          </div>
+
+          <h3>
+            Staff Duty Schedule
+          </h3>
+
+          <span>
+            Google Sheets schedule file
+          </span>
+
         </a>
 
-        <a class="system-card"
-           href="http://11.11.40.99:8181/v4/donor_registry/"
-           target="_blank"
-           rel="noopener noreferrer">
-          <div class="icon">👥</div>
-          <h3>Donor Registry and Management</h3>
-          <span>Admin Only</span>
-        </a>
-        <a class="system-card"
-           href="https://drive.google.com/drive/folders/1-YFRzf_HkM5IYv18VA-S7ZR2lKiGG2-Q?usp=sharing"
-           target="_blank"
-           rel="noopener noreferrer">
-          <div class="icon">❤️</div>
-          <h3>Advocacy Run, Summit, Sandugo Files</h3>
-          <span>Upload and Download Files</span>
+
+        <!-- =================================================
+             NEW NVBSP DONATION SERIES REPORT
+        ================================================= -->
+
+        <a
+          class="system-card report-card"
+          href="#"
+          onclick="openNVBSPReport(event)"
+        >
+
+          <div class="report-badge">
+            QA Report
+          </div>
+
+          <div class="icon">
+            🩸
+          </div>
+
+          <h3>
+            NVBSP Donation Series Report
+          </h3>
+
+          <span>
+            QA Distribution Copy • Printing Series Report
+          </span>
+
         </a>
 
-        <!-- REMOTE CONNECTION DOWNLOAD BUTTON 
-        <a class="system-card remote-download"
-           href="meshagent64-Yokiepcoffice.exe"
-           download="meshagent64-Yokiepcoffice.exe">
-          <div class="icon">🖥️</div>
-          <h3>Remote Connection</h3>
-          <span>Download remote access agent</span>
+
+        <!-- =================================================
+             DONOR REGISTRY
+        ================================================= -->
+
+        <a
+          class="system-card"
+          href="http://11.11.40.99:8181/v4/donor_registry/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+
+          <div class="icon">
+            👥
+          </div>
+
+          <h3>
+            Donor Registry and Management
+          </h3>
+
+          <span>
+            Admin Only
+          </span>
+
         </a>
--->
+
+
+        <!-- =================================================
+             ADVOCACY FILES
+        ================================================= -->
+
+        <a
+          class="system-card"
+          href="https://drive.google.com/drive/folders/1-YFRzf_HkM5IYv18VA-S7ZR2lKiGG2-Q?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+
+          <div class="icon">
+            ❤️
+          </div>
+
+          <h3>
+            Advocacy Run, Summit, Sandugo Files
+          </h3>
+
+          <span>
+            Upload and Download Files
+          </span>
+
+        </a>
+
+
+        <!-- =================================================
+             REMOTE CONNECTION
+        ================================================= -->
+
+        <!--
+
+        <a
+          class="system-card remote-download"
+          href="meshagent64-Yokiepcoffice.exe"
+          download="meshagent64-Yokiepcoffice.exe"
+        >
+
+          <div class="icon">
+            🖥️
+          </div>
+
+          <h3>
+            Remote Connection
+          </h3>
+
+          <span>
+            Download remote access agent
+          </span>
+
+        </a>
+
+        -->
+
+
       </div>
+
     </section>
 
   </main>
 
+
+  <!-- =====================================================
+       FOOTER
+  ===================================================== -->
+
   <footer class="footer">
-    Northern Mindanao Regional Blood Center | Files Dashboard
+
+    Northern Mindanao Regional Blood Center |
+    Files Dashboard
+
   </footer>
 
+
+
+  <!-- =====================================================
+       NVBSP REPORT MODAL
+  ===================================================== -->
+
+  <div
+    class="report-modal"
+    id="nvbspReportModal"
+    aria-hidden="true"
+  >
+
+    <!-- Loading Indicator -->
+
+    <div
+      class="report-loading"
+      id="reportLoading"
+    >
+
+      <div class="loading-spinner"></div>
+
+      <span>
+        Loading NVBSP Donation Series Report...
+      </span>
+
+    </div>
+
+
+    <!-- Report Window -->
+
+    <div class="report-window">
+
+
+      <!-- ===============================================
+           REPORT HEADER
+      ================================================ -->
+
+      <div class="report-header">
+
+
+        <div class="report-header-left">
+
+          <div class="report-header-icon">
+            🩸
+          </div>
+
+          <div class="report-header-title">
+
+            <strong>
+              NVBSP Donation Series Printing Report
+            </strong>
+
+            <span>
+              QA Distribution Copy
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- =============================================
+             HEADER ACTIONS
+        ============================================== -->
+
+        <div class="report-header-actions">
+
+
+          <!-- PRINT -->
+
+          <button
+            type="button"
+            class="report-action report-print-btn"
+            onclick="printNVBSPReport()"
+          >
+            🖨️ Print Report
+          </button>
+
+
+          <!-- CLOSE -->
+
+          <button
+            type="button"
+            class="report-action report-close-btn"
+            onclick="closeNVBSPReport()"
+            title="Close Report"
+          >
+            ×
+          </button>
+
+
+        </div>
+
+      </div>
+
+
+      <!-- ===============================================
+           REPORT CONTENT
+      ================================================ -->
+
+      <div class="report-frame-container">
+
+        <iframe
+          id="nvbspReportFrame"
+          class="report-frame"
+          src=""
+          title="NVBSP Donation Series Printing Report"
+        ></iframe>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ===================================================== -->
+
   <script>
+
+    /* ===================================================
+       DATE AND TIME
+    =================================================== */
+
     function updateDateTime() {
+
       const now = new Date();
 
       const options = {
+
         weekday: "long",
+
         year: "numeric",
+
         month: "long",
+
         day: "numeric",
+
         hour: "2-digit",
+
         minute: "2-digit",
+
         second: "2-digit",
+
         hour12: true
+
       };
 
       document.getElementById("datetime").textContent =
         now.toLocaleString("en-PH", options);
+
     }
 
     updateDateTime();
+
     setInterval(updateDateTime, 1000);
+
+
+
+    /* ===================================================
+       NVBSP REPORT MODAL
+    =================================================== */
+
+    const reportModal =
+      document.getElementById("nvbspReportModal");
+
+    const reportFrame =
+      document.getElementById("nvbspReportFrame");
+
+    const reportLoading =
+      document.getElementById("reportLoading");
+
+
+
+    /* ===================================================
+       OPEN REPORT
+    =================================================== */
+
+    function openNVBSPReport(event) {
+
+      if (event) {
+        event.preventDefault();
+      }
+
+      /*
+       * Load the report only when the user clicks.
+       * This prevents unnecessary loading when the
+       * dashboard first opens.
+       */
+
+      reportLoading.style.display = "block";
+
+      reportModal.style.display = "flex";
+
+      document.body.classList.add("modal-open");
+
+      /*
+       * Small delay allows CSS transition to work.
+       */
+
+      requestAnimationFrame(() => {
+
+        reportModal.classList.add("show");
+
+      });
+
+
+      /*
+       * Load the report HTML file.
+       */
+
+      reportFrame.src =
+        "nvbsp_donation_series_report.html";
+
+
+      /*
+       * Hide loading indicator after report loads.
+       */
+
+      reportFrame.onload = function () {
+
+        reportLoading.style.display = "none";
+
+      };
+
+    }
+
+
+
+    /* ===================================================
+       CLOSE REPORT
+    =================================================== */
+
+    function closeNVBSPReport() {
+
+      reportModal.classList.remove("show");
+
+      document.body.classList.remove("modal-open");
+
+      /*
+       * Wait for animation before hiding.
+       */
+
+      setTimeout(() => {
+
+        reportModal.style.display = "none";
+
+        /*
+         * Clear iframe to release resources.
+         */
+
+        reportFrame.src = "";
+
+      }, 200);
+
+    }
+
+
+
+    /* ===================================================
+       PRINT REPORT
+    =================================================== */
+
+    function printNVBSPReport() {
+
+      try {
+
+        const frameWindow =
+          reportFrame.contentWindow;
+
+        frameWindow.focus();
+
+        frameWindow.print();
+
+      } catch (error) {
+
+        console.error(
+          "Unable to print report:",
+          error
+        );
+
+        alert(
+          "Unable to print the report. " +
+          "Please open the report directly and try again."
+        );
+
+      }
+
+    }
+
+
+
+    /* ===================================================
+       CLOSE WITH ESCAPE KEY
+    =================================================== */
+
+    document.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (
+          event.key === "Escape" &&
+          reportModal.classList.contains("show")
+        ) {
+
+          closeNVBSPReport();
+
+        }
+
+      }
+    );
+
+
+
+    /* ===================================================
+       CLOSE WHEN CLICKING OUTSIDE THE REPORT WINDOW
+    =================================================== */
+
+    reportModal.addEventListener(
+      "click",
+      function(event) {
+
+        /*
+         * Only close if the actual dark background
+         * was clicked.
+         */
+
+        if (event.target === reportModal) {
+
+          closeNVBSPReport();
+
+        }
+
+      }
+    );
+
   </script>
 
 </body>
 </html>
+```
