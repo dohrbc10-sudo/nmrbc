@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,8 +25,15 @@
         }
 
         .serial-code {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-                "Liberation Mono", "Courier New", monospace;
+            font-family:
+                ui-monospace,
+                SFMono-Regular,
+                Menlo,
+                Monaco,
+                Consolas,
+                "Liberation Mono",
+                "Courier New",
+                monospace;
             letter-spacing: -0.02em;
         }
 
@@ -48,7 +54,6 @@
         }
 
         @media print {
-
             body {
                 background: #ffffff !important;
                 padding: 0 !important;
@@ -77,10 +82,7 @@
 
 <body class="py-8 px-4">
 
-    <!-- ================================================
-         FLOATING PRINT CONTROL BAR
-    ================================================= -->
-
+    <!-- Floating Print Control Bar -->
     <div class="no-print max-w-[210mm] mx-auto mb-4 flex justify-between items-center bg-slate-900 text-white p-4 rounded-xl shadow-xl border border-slate-800">
 
         <div class="flex items-center space-x-3">
@@ -103,7 +105,6 @@
             onclick="window.print()"
             class="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-6 py-2.5 rounded-lg transition duration-150 shadow-md"
         >
-
             <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
                 <path
                     fill-rule="evenodd"
@@ -112,27 +113,18 @@
                 />
             </svg>
 
-            <span>
-                Print Report
-            </span>
-
+            <span>Print Report</span>
         </button>
 
     </div>
 
 
-    <!-- ================================================
-         A4 PRINT CONTAINER
-    ================================================= -->
-
+    <!-- A4 PRINT CONTAINER -->
     <div class="a4-container">
 
         <div>
 
-            <!-- ============================================
-                 HEADER
-            ============================================= -->
-
+            <!-- Header Section -->
             <header class="border-b-2 border-red-700 pb-4 mb-5 flex justify-between items-start">
 
                 <div>
@@ -185,15 +177,10 @@
             </header>
 
 
-            <!-- ============================================
-                 KPI SUMMARY
-            ============================================= -->
-
+            <!-- KPI Summary Metric Cards -->
             <section class="grid grid-cols-4 gap-3 mb-6">
 
-
-                <!-- TOTAL ALLOCATION -->
-
+                <!-- Total Allocation -->
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
 
                     <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">
@@ -214,8 +201,7 @@
                 </div>
 
 
-                <!-- PREVIOUSLY PRINTED -->
-
+                <!-- Previously Printed -->
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
 
                     <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">
@@ -223,21 +209,20 @@
                     </span>
 
                     <div class="text-lg font-black text-slate-800 mt-0.5">
-                        560
+                        1,060
                         <span class="text-xs font-normal text-slate-500">
                             Pcs
                         </span>
                     </div>
 
                     <div class="serial-code text-[9px] font-medium text-slate-500 mt-0.5 truncate">
-                        20269249951 - 20269250510
+                        20269249951 - 20269251010
                     </div>
 
                 </div>
 
 
-                <!-- CURRENTLY PRINTED -->
-
+                <!-- ACTIVE CURRENTLY PRINTED -->
                 <div class="bg-red-50 border-2 border-red-600 rounded-xl p-3 shadow-sm relative overflow-hidden">
 
                     <div class="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-bl">
@@ -245,7 +230,7 @@
                     </div>
 
                     <span class="text-[9px] font-extrabold text-red-700 uppercase tracking-wider block">
-                        Printed Today
+                        Currently Printed
                     </span>
 
                     <div class="text-lg font-black text-red-700 mt-0.5">
@@ -262,8 +247,7 @@
                 </div>
 
 
-                <!-- REMAINING -->
-
+                <!-- Remaining Unprinted -->
                 <div class="bg-emerald-50/60 border border-emerald-300 rounded-xl p-3">
 
                     <span class="text-[9px] font-bold text-emerald-800 uppercase tracking-wider block">
@@ -286,20 +270,13 @@
             </section>
 
 
-            <!-- ============================================
-                 SERIES ALLOCATION TABLE
-            ============================================= -->
-
+            <!-- Main Functional Series Table -->
             <section class="mb-6">
 
                 <div class="flex justify-between items-center mb-2">
 
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center space-x-1.5">
-
-                        <span>
-                            Series Allocation & Status Ledger
-                        </span>
-
+                        <span>Series Allocation & Status Ledger</span>
                     </h3>
 
                     <span class="text-[10px] text-slate-500 font-medium">
@@ -346,11 +323,7 @@
 
                     <tbody class="divide-y divide-slate-200 text-[11px]">
 
-
-                        <!-- ==================================
-                             BATCH 1
-                        =================================== -->
-
+                        <!-- Batch 1 -->
                         <tr class="bg-white text-slate-700">
 
                             <td class="py-2.5 px-3.5 border-r border-slate-200 font-bold text-slate-600">
@@ -384,10 +357,7 @@
                         </tr>
 
 
-                        <!-- ==================================
-                             BATCH 2
-                        =================================== -->
-
+                        <!-- Batch 2 -->
                         <tr class="bg-white text-slate-700">
 
                             <td class="py-2.5 px-3.5 border-r border-slate-200 font-bold text-slate-600">
@@ -421,11 +391,7 @@
                         </tr>
 
 
-                        <!-- ==================================
-                             BATCH 3
-                             PREVIOUS CURRENT BATCH
-                        =================================== -->
-
+                        <!-- Batch 3 -->
                         <tr class="bg-white text-slate-700">
 
                             <td class="py-2.5 px-3.5 border-r border-slate-200 font-bold text-slate-600">
@@ -444,9 +410,9 @@
                                 500 Pcs
                             </td>
 
-                            <td class="py-2.5 px-3.5 border-r border-slate-200">
+                            <td class="py-2.5 px-3.5 border-r border-slate-200 font-bold text-slate-600">
 
-                                <span class="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-bold">
+                                <span class="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px]">
                                     PRINTED
                                 </span>
 
@@ -459,20 +425,20 @@
                         </tr>
 
 
-                        <!-- ==================================
-                             BATCH 4
-                             PRINTED TODAY
-                        =================================== -->
-
+                        <!-- Batch 4 - TODAY'S ACTIVE PRINTED RELEASE -->
                         <tr class="bg-red-50/90 font-bold text-slate-900 border-y-2 border-red-600">
 
-                            <td class="py-3 px-3.5 border-r border-slate-300 text-red-700 flex items-center space-x-1.5">
+                            <td class="py-3 px-3.5 border-r border-slate-300 text-red-700">
 
-                                <span class="w-2 h-2 rounded-full bg-red-600 inline-block animate-ping"></span>
+                                <div class="flex items-center space-x-1.5">
 
-                                <span class="uppercase text-[10px] font-black">
-                                    Batch 4
-                                </span>
+                                    <span class="w-2 h-2 rounded-full bg-red-600 inline-block animate-ping"></span>
+
+                                    <span class="uppercase text-[10px] font-black">
+                                        Batch 4
+                                    </span>
+
+                                </div>
 
                             </td>
 
@@ -491,7 +457,7 @@
                             <td class="py-3 px-3.5 border-r border-slate-300">
 
                                 <span class="inline-block bg-red-600 text-white px-2.5 py-0.5 rounded font-black text-[10px] tracking-wider uppercase">
-                                    PRINTED TODAY
+                                    ACTIVE PRINTED
                                 </span>
 
                             </td>
@@ -503,11 +469,7 @@
                         </tr>
 
 
-                        <!-- ==================================
-                             BATCH 5
-                             REMAINING
-                        =================================== -->
-
+                        <!-- Batch 5 - REMAINING AVAILABLE -->
                         <tr class="bg-emerald-50/30 text-slate-700">
 
                             <td class="py-2.5 px-3.5 border-r border-slate-200 font-bold text-emerald-800">
@@ -540,7 +502,6 @@
 
                         </tr>
 
-
                     </tbody>
 
                 </table>
@@ -548,10 +509,7 @@
             </section>
 
 
-            <!-- ============================================
-                 MATHEMATICAL AUDIT FORMULA
-            ============================================= -->
-
+            <!-- QA Balance Formula Note -->
             <section class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-6">
 
                 <div class="text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
@@ -561,20 +519,13 @@
                 <div class="text-xs text-slate-600 flex items-center justify-between font-mono bg-white p-2 border border-slate-200 rounded-lg">
 
                     <span>
-                        3,000 (Allocated)
-                        - 560 (Prev. Printed)
-                        - 500 (Today)
+                        3,000 (Allocated) - 560 (Batch 1-2) - 500 (Batch 3) - 500 (Batch 4 / Today)
                     </span>
 
                     <span class="font-bold text-emerald-700">
-                        = 1,940 Pcs Available
+                        = 1,440 Pcs Available
                     </span>
 
-                </div>
-
-
-                <div class="text-[9px] text-slate-500 mt-2 text-right">
-                    Total printed to date: 1,060 Pcs
                 </div>
 
             </section>
@@ -582,17 +533,12 @@
         </div>
 
 
-        <!-- ================================================
-             SIGNATURE SECTION
-        ================================================= -->
-
+        <!-- Dual Signature Section -->
         <footer class="pt-4 border-t border-slate-200">
 
             <div class="grid grid-cols-2 gap-12 max-w-xl mx-auto text-center">
 
-
-                <!-- PREPARED BY -->
-
+                <!-- Prepared By -->
                 <div>
 
                     <div class="border-b-2 border-slate-900 pb-1 mb-1.5 min-h-[32px] flex items-end justify-center">
@@ -614,12 +560,11 @@
                 </div>
 
 
-                <!-- VERIFIED BY -->
-
+                <!-- Verified By -->
                 <div>
 
                     <div class="border-b-2 border-slate-900 pb-1 mb-1.5 min-h-[32px] flex items-end justify-center">
-                        <!-- Blank signature line -->
+                        <!-- Blank line for physical signature -->
                     </div>
 
                     <div class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">
@@ -635,13 +580,11 @@
             </div>
 
 
-            <!-- DOCUMENT MARKER -->
-
+            <!-- Footer Document Marker -->
             <div class="mt-6 text-center text-[9px] text-slate-400 uppercase tracking-widest border-t border-slate-100 pt-2">
 
                 Northern Mindanao Regional Blood Center
-                •
-                Document Ref: QA-NVBSP-2026-0925
+                • Document Ref: QA-NVBSP-2026-0925
 
             </div>
 
@@ -651,4 +594,3 @@
 
 </body>
 </html>
-```
