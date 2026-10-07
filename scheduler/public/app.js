@@ -14,6 +14,13 @@ import {
   calendarFile,
 } from "./core.js";
 import { DemoStore, LiveStore } from "./data.js";
+import {
+  calendarModel,
+  monthMarkup,
+  dayEventsMarkup,
+  dayPersonnelMarkup,
+  calendarExportRows,
+} from "./calendar.js";
 const $ = (id) => document.getElementById(id);
 const config = window.SCHEDULER_CONFIG || {};
 const s = {
@@ -28,6 +35,9 @@ const s = {
   sync: null,
   epoch: 0,
   saving: false,
+  calendarDate: today(),
+  calendarNames: false,
+  calendarDuty: "duty",
 };
 let store,
   client,
@@ -35,8 +45,14 @@ let store,
   timer,
   toastTimer;
 const seenKey = "scheduler-seen-" + (config.supabaseUrl || "demo");
-const selection = () => period(s.anchor, s.view);
-const days = () => datesBetween(selection().start, selection().end, s.weekends);
+const selection = () =>
+  period(s.anchor, s.tab === "calendar" ? "month" : s.view);
+const days = () =>
+  datesBetween(
+    selection().start,
+    selection().end,
+    s.tab === "calendar" || s.weekends,
+  );
 const assignment = (person, date) =>
   s.data.assignments.find(
     (a) => a.personnel_id === person && a.work_date === date,
@@ -60,8 +76,9 @@ const visiblePeople = () =>
               a.work_date >= selection().start &&
               a.work_date <= selection().end,
           )) &&
-        (!s.filter || p.id === s.filter) &&
-        (!s.query ||
+        (s.tab === "calendar" || !s.filter || p.id === s.filter) &&
+        (s.tab === "calendar" ||
+          !s.query ||
           `${p.name} ${p.role_label}`.toLowerCase().includes(s.query)),
     )
     .sort(
@@ -141,15 +158,20 @@ function render() {
   adminUI();
   if (s.filter && !s.data.personnel.some((p) => p.id === s.filter))
     s.filter = "";
+  const effectiveView = s.tab === "calendar" ? "month" : s.view;
+  document.body.classList.toggle("calendar-view", s.tab === "calendar");
+  document.querySelector(".segments").hidden = s.tab === "calendar";
+  $("printButton").textContent =
+    s.tab === "calendar" ? "Print calendar" : "Print roster";
   const p = selection(),
     ds = days(),
     people = visiblePeople();
   $("periodTitle").textContent =
-    s.view === "week"
+    effectiveView === "week"
       ? `${formatDate(p.start, { day: "numeric", month: "short" })} – ${formatDate(p.end)}`
       : formatDate(p.start, { month: "long", year: "numeric" });
   $("periodSubtitle").textContent =
-    `${s.view === "first" ? "Days 1–15" : s.view === "second" ? "Days 16–" + p.end.slice(-2) : s.view === "week" ? "Monday–Sunday" : "Whole month"} · Philippine time (UTC+8)`;
+    `${effectiveView === "first" ? "Days 1–15" : effectiveView === "second" ? "Days 16–" + p.end.slice(-2) : effectiveView === "week" ? "Monday–Sunday" : "Whole month"} · Philippine time (UTC+8)`;
   $("monthPicker").value = s.anchor.slice(0, 7);
   document.querySelectorAll("[data-view]").forEach((b) => {
     b.classList.toggle("selected", b.dataset.view === s.view);
@@ -159,7 +181,14 @@ function render() {
     b.classList.toggle("active", b.dataset.tab === s.tab);
     b.setAttribute("aria-current", b.dataset.tab === s.tab ? "page" : "false");
   });
-  for (const tab of ["roster", "events", "changes", "balance", "personnel"])
+  for (const tab of [
+    "roster",
+    "calendar",
+    "events",
+    "changes",
+    "balance",
+    "personnel",
+  ])
     $(tab + "Panel").hidden = s.tab !== tab;
   $("personFilter").innerHTML =
     '<option value="">All personnel</option>' +
@@ -233,6 +262,7 @@ function render() {
   renderChanges();
   renderBalance(people, ds);
   renderPersonnel();
+  renderCalendar();
   $("lastSync").textContent = s.sync
     ? "Updated " +
       new Intl.DateTimeFormat("en-PH", {
@@ -248,6 +278,49 @@ function render() {
   $("printPeriod").textContent =
     `${formatDate(p.start)} – ${formatDate(p.end)}${s.filter ? " · " + (s.data.personnel.find((p) => p.id === s.filter)?.name || "") : ""}${!s.weekends ? " · Weekdays only" : ""}${demo ? " · DEMO SCHEDULE" : ""}`;
   updateNotice();
+}
+function renderCalendar() {
+  const month = s.anchor.slice(0, 7);
+  if (s.calendarDate.slice(0, 7) !== month)
+    s.calendarDate = today().slice(0, 7) === month ? today() : month + "-01";
+  const model = calendarModel(s.data);
+  const day = model.day(s.calendarDate);
+  const focusedDate = document.activeElement?.dataset?.calendarDay;
+  $("calendarGrid").innerHTML = monthMarkup(
+    model,
+    s.anchor,
+    s.calendarDate,
+    s.calendarNames,
+  );
+  $("calendarGrid").setAttribute(
+    "aria-label",
+    "Dates in " + formatDate(month + "-01", { month: "long", year: "numeric" }),
+  );
+  $("calendarDayTitle").textContent = formatDate(s.calendarDate, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  $("calendarDayCounts").innerHTML =
+    `<span>${day.duty.length} on duty</span><span>AM ${day.counts.AM}</span><span>PM ${day.counts.PM}</span><span>MBD ${day.counts.MBD}</span><span>${day.unassigned} unassigned</span>`;
+  $("calendarDayEvents").innerHTML = dayEventsMarkup(day);
+  $("calendarDayPersonnel").innerHTML = dayPersonnelMarkup(
+    model,
+    day,
+    s.calendarDuty,
+    s.admin,
+  );
+  $("calendarDutyFilter").value = s.calendarDuty;
+  $("calendarNamesToggle").checked = s.calendarNames;
+  $("calendarPrintOrg").textContent =
+    config.organization || "Northern Mindanao Regional Blood Center";
+  $("calendarPrintMonth").textContent =
+    formatDate(month + "-01", { month: "long", year: "numeric" }) +
+    (demo ? " · DEMO SCHEDULE" : "");
+  if (focusedDate && s.tab === "calendar")
+    $("calendarGrid")
+      .querySelector(`[data-calendar-day="${focusedDate}"]`)
+      ?.focus({ preventScroll: true });
 }
 function renderEvents() {
   const events = visibleEvents();
@@ -498,11 +571,11 @@ function eventDetails(id, personId = null, date = null) {
   if (s.admin && personId)
     $("editMbdCell").onclick = () => assignmentForm(personId, date);
 }
-function eventForm(id = null) {
+function eventForm(id = null, prefillDate = null) {
   if (!s.admin) return;
   const e = eventBy(id),
     crew = crewFor(id).map((p) => p.id);
-  const date = e?.event_date || selection().start;
+  const date = e?.event_date || prefillDate || selection().start;
   openDialog(
     e ? "Edit MBD event & team" : "Add MBD event",
     `<form id="eventForm" class="form-grid">${field("Event title", "title", e?.title, "text", 'required maxlength="160"')}${field("Event date", "event_date", date, "date", "required")}${field("Location / venue", "location", e?.location, "text", 'required maxlength="300"')}${field("Call time · Philippine time", "call_time", e?.call_time?.slice(0, 5) || "07:00", "time", "required")}${field("End time (optional)", "end_time", e?.end_time?.slice(0, 5), "time")}${field("Expected donors", "expected_donors", e?.expected_donors ?? 0, "number", 'required min="0" max="100000" step="1"')}${field("Contact person (public)", "contact_person", e?.contact_person, "text", 'maxlength="160"')}${field("Transport / meeting point", "transport", e?.transport, "text", 'maxlength="300"')}<label>Status<select name="status">${["planned", "confirmed", "cancelled"].map((v) => `<option ${e?.status === v ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="form-full">Additional details<textarea name="notes" rows="3" maxlength="2000">${h(e?.notes)}</textarea></label><fieldset class="form-full"><legend>Companions / assigned personnel</legend><p class="muted small">Selecting a person creates their MBD roster cell. An existing duty must be cleared first. Moving this event moves its selected crew; cancellation clears its MBD cells.</p><div class="crew-picker">${
@@ -702,6 +775,16 @@ function bind() {
       s.tab = b.dataset.tab;
       render();
     }
+    if (b.dataset.calendarDay) {
+      s.calendarDate = b.dataset.calendarDay;
+      renderCalendar();
+      if (matchMedia("(max-width:650px)").matches) {
+        $("calendarDayTitle").focus({ preventScroll: true });
+        document
+          .querySelector(".calendar-day-panel")
+          .scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
     if (b.dataset.view) {
       s.view = b.dataset.view;
       refresh(true);
@@ -738,16 +821,30 @@ function bind() {
   };
   $("refreshButton").onclick = () => refresh();
   $("prevPeriod").onclick = () => {
-    Object.assign(s, movePeriod(s.anchor, s.view, -1));
+    const next = movePeriod(
+      s.anchor,
+      s.tab === "calendar" ? "month" : s.view,
+      -1,
+    );
+    if (s.tab === "calendar") s.anchor = next.anchor;
+    else Object.assign(s, next);
     refresh(true);
   };
   $("nextPeriod").onclick = () => {
-    Object.assign(s, movePeriod(s.anchor, s.view, 1));
+    const next = movePeriod(
+      s.anchor,
+      s.tab === "calendar" ? "month" : s.view,
+      1,
+    );
+    if (s.tab === "calendar") s.anchor = next.anchor;
+    else Object.assign(s, next);
     refresh(true);
   };
   $("todayButton").onclick = () => {
     s.anchor = today();
-    s.view = +s.anchor.slice(-2) <= 15 ? "first" : "second";
+    if (s.tab !== "calendar")
+      s.view = +s.anchor.slice(-2) <= 15 ? "first" : "second";
+    s.calendarDate = today();
     refresh(true);
   };
   $("monthPicker").onchange = (ev) => {
@@ -768,6 +865,15 @@ function bind() {
     s.query = ev.target.value.toLowerCase().trim();
     render();
   };
+  $("calendarNamesToggle").onchange = (ev) => {
+    s.calendarNames = ev.target.checked;
+    renderCalendar();
+  };
+  $("calendarDutyFilter").onchange = (ev) => {
+    s.calendarDuty = ev.target.value;
+    renderCalendar();
+  };
+  $("calendarAddEvent").onclick = () => eventForm(null, s.calendarDate);
   $("bulkButton").onclick = bulkForm;
   $("addEventButton").onclick = () => eventForm();
   $("addPersonnelButton").onclick = () => personnelForm();
@@ -792,6 +898,14 @@ function bind() {
     }
   };
   $("exportButton").onclick = () => {
+    if (s.tab === "calendar") {
+      download(
+        "\ufeff" + csv(calendarExportRows(s.data, s.anchor)),
+        "activity-calendar-" + s.anchor.slice(0, 7) + ".csv",
+        "text/csv;charset=utf-8",
+      );
+      return;
+    }
     const ds = days();
     const rows = [
       ["Personnel", "Role", ...ds],
@@ -819,7 +933,7 @@ function bind() {
     );
   };
   $("printButton").onclick = () => {
-    s.tab = "roster";
+    if (s.tab !== "calendar") s.tab = "roster";
     render();
     window.print();
   };
