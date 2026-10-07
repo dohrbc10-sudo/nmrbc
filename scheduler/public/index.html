@@ -11,6 +11,116 @@
     <title>NMRBC · Personnel Schedule</title>
     <link rel="icon" type="image/svg+xml" href="./icon.svg" />
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./calendar.css" />
+    <style id="personnel-row-colors">
+      /* Simple white / pale blue personnel rows. */
+      #rosterTable tbody tr:nth-child(odd),
+      #balanceTable tbody tr:nth-child(odd) {
+        --row-wash: #ffffff;
+      }
+      #rosterTable tbody tr:nth-child(even),
+      #balanceTable tbody tr:nth-child(even) {
+        --row-wash: #eef4fb;
+      }
+      #rosterTable tbody td,
+      #rosterTable tbody .person-col,
+      #rosterTable tbody td.today,
+      #balanceTable tbody td,
+      #balanceTable tbody th {
+        background: var(--row-wash);
+      }
+      #rosterTable tbody .person-col,
+      #balanceTable tbody th {
+        border-left: 3px solid #b8cce4;
+      }
+      #rosterTable th,
+      #rosterTable td {
+        border-right-color: #d6e0eb;
+        border-bottom-color: #d6e0eb;
+      }
+      #rosterTable thead th,
+      #rosterTable thead .person-col,
+      #balanceTable thead th {
+        background: #e5edf7;
+        color: #253c57;
+      }
+      #rosterTable thead th.weekend {
+        background: #dce7f3;
+      }
+      #rosterTable thead th.today {
+        background: #982e3a;
+        color: #fff;
+      }
+      #rosterTable thead th.today > small {
+        color: #fff;
+      }
+      #rosterTable tbody td.today {
+        box-shadow:
+          inset 1px 0 #a8bdd8,
+          inset -1px 0 #a8bdd8;
+      }
+      @media (hover: hover) {
+        #rosterTable tbody tr:hover > td,
+        #rosterTable tbody tr:hover > .person-col,
+        #balanceTable tbody tr:hover > td,
+        #balanceTable tbody tr:hover > th {
+          background: #eef4fb;
+          box-shadow:
+            inset 0 1px #a8bdd8,
+            inset 0 -1px #a8bdd8;
+        }
+      }
+      #rosterTable tbody tr:focus-within > td,
+      #rosterTable tbody tr:focus-within > .person-col {
+        background: #eef4fb;
+        box-shadow:
+          inset 0 1px #a8bdd8,
+          inset 0 -1px #a8bdd8;
+      }
+      #rosterTable .shift.empty {
+        color: #64748b;
+      }
+      #personnelList .personnel-item {
+        padding-left: 12px;
+        padding-right: 12px;
+        border-left: 3px solid #b8cce4;
+      }
+      #personnelList .personnel-item:nth-child(odd) {
+        background: #fff;
+      }
+      #personnelList .personnel-item:nth-child(even) {
+        background: #eef4fb;
+      }
+      @media print {
+        #rosterTable tbody tr {
+          --row-wash: #fff;
+        }
+        #rosterTable tbody td,
+        #rosterTable tbody .person-col,
+        #rosterTable tbody td.today,
+        #rosterTable tbody tr:hover > td,
+        #rosterTable tbody tr:hover > .person-col,
+        #rosterTable tbody tr:focus-within > td,
+        #rosterTable tbody tr:focus-within > .person-col {
+          background: #fff;
+          box-shadow: none;
+        }
+        #rosterTable tbody .person-col {
+          border-left: 0;
+        }
+        #rosterTable thead th,
+        #rosterTable thead .person-col,
+        #rosterTable thead th.weekend,
+        #rosterTable thead th.today {
+          background: #f3f5f7;
+          color: #202d35;
+          box-shadow: none;
+        }
+        #rosterTable thead th.today > small {
+          color: #5d6874;
+        }
+      }
+    </style>
     <script src="./config.js"></script>
     <script type="module" src="./app.js"></script>
   </head>
@@ -48,6 +158,7 @@
         </section>
         <nav class="tabs" aria-label="Schedule sections">
           <button data-tab="roster" class="tab active">Staff roster</button
+          ><button data-tab="calendar" class="tab">Activity calendar</button
           ><button data-tab="events" class="tab">
             MBD events <span id="eventsCount" class="count">0</span></button
           ><button data-tab="changes" class="tab">
@@ -157,6 +268,90 @@
           <div class="roster-footer">
             <span id="lastSync">Not synced yet</span
             ><span>— means unassigned; it does not mean a day off.</span>
+          </div>
+        </section>
+        <section
+          id="calendarPanel"
+          class="panel"
+          aria-labelledby="calendarTitle"
+          hidden
+        >
+          <div class="calendar-print-heading">
+            <h2 id="calendarPrintOrg"></h2>
+            <p id="calendarPrintMonth"></p>
+            <small>Philippine time · MBD events and assigned duties</small>
+          </div>
+          <div class="panel-head">
+            <div>
+              <h2 id="calendarTitle">Activity calendar</h2>
+              <p class="muted small">
+                Whole-month activities for the entire team. Select a day to see
+                events and personnel.
+              </p>
+            </div>
+            <button
+              id="calendarAddEvent"
+              class="button primary admin-only"
+              hidden
+            >
+              ＋ Add MBD event
+            </button>
+          </div>
+          <div class="calendar-controls">
+            <label class="checkbox-label"
+              ><input id="calendarNamesToggle" type="checkbox" /> Show personnel
+              names in calendar</label
+            ><span class="muted small"
+              >OFF, LEAVE, and unassigned personnel are excluded from on-duty
+              counts.</span
+            >
+          </div>
+          <div class="calendar-layout">
+            <div class="calendar-month">
+              <div class="calendar-weekdays" aria-hidden="true">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span
+                ><span>Fri</span><span>Sat</span><span>Sun</span>
+              </div>
+              <div
+                id="calendarGrid"
+                class="calendar-grid"
+                role="group"
+                aria-label="Dates in the selected month"
+              ></div>
+              <p class="calendar-note muted small">
+                Select a date for its full activity list. Blank duties are
+                unassigned, not days off.
+              </p>
+            </div>
+            <aside
+              class="calendar-day-panel"
+              aria-labelledby="calendarDayTitle"
+            >
+              <h3 id="calendarDayTitle" tabindex="-1" aria-live="polite"></h3>
+              <div id="calendarDayCounts" class="day-counts"></div>
+              <section>
+                <h4>MBD events</h4>
+                <div id="calendarDayEvents"></div>
+              </section>
+              <section>
+                <div class="day-personnel-heading">
+                  <h4>Personnel</h4>
+                  <label
+                    ><span class="visually-hidden">Personnel duty filter</span
+                    ><select id="calendarDutyFilter">
+                      <option value="duty">On duty</option>
+                      <option value="MBD">MBD crew</option>
+                      <option value="AM">AM duties</option>
+                      <option value="PM">PM duties</option>
+                      <option value="OFFICE">Office</option>
+                      <option value="TRAINING">Training</option>
+                      <option value="all">All personnel / statuses</option>
+                    </select></label
+                  >
+                </div>
+                <div id="calendarDayPersonnel"></div>
+              </section>
+            </aside>
           </div>
         </section>
         <section id="eventsPanel" class="panel" hidden>
