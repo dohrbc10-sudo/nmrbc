@@ -1,0 +1,19 @@
+{
+  "name": "nmrbc-scheduler",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test tests/core.test.mjs tests/database.test.mjs",
+    "vendor": "node scripts/bundle-sdk.mjs",
+    "test:browser": "node tests/browser-smoke.mjs",
+    "test:live": "node tests/live-integration.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@supabase/supabase-js": "2.117.2",
+    "esbuild": "0.28.2",
+    "playwright": "1.62.1"
+  }
+}

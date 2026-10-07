@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#982e3a" />
+    <meta
+      name="description"
+      content="Personnel roster and mobile blood donation schedule."
+    />
+    <title>NMRBC · Personnel Schedule</title>
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./config.js"></script>
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a href="./" class="brand" aria-label="NMRBC schedule home"
+          ><span class="brand-mark" aria-hidden="true">✚</span
+          ><span
+            ><strong>NMRBC</strong><small>Personnel scheduling</small></span
+          ></a
+        >
+        <div class="header-actions">
+          <span id="connectionBadge" class="connection">Connecting…</span
+          ><button id="loginButton" class="button outline">Admin login</button
+          ><button id="logoutButton" class="button outline" hidden>
+            Sign out
+          </button>
+        </div>
+      </header>
+      <div id="modeBanner" class="mode-banner" hidden></div>
+      <div id="errorBanner" class="error-banner" role="alert" hidden></div>
+      <main>
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow">THE TEAM, IN SYNC</p>
+            <h1>Personnel schedule<span>.</span></h1>
+            <p class="muted">Every shift. Every team. One shared roster.</p>
+          </div>
+          <div class="heading-actions">
+            <button id="refreshButton" class="button outline">↻ Refresh</button
+            ><button id="exportButton" class="button outline">Export CSV</button
+            ><button id="printButton" class="button dark">Print roster</button>
+          </div>
+        </section>
+        <nav class="tabs" aria-label="Schedule sections">
+          <button data-tab="roster" class="tab active">Staff roster</button
+          ><button data-tab="events" class="tab">
+            MBD events <span id="eventsCount" class="count">0</span></button
+          ><button data-tab="changes" class="tab">
+            Change history
+            <span id="changesCount" class="count">0</span></button
+          ><button data-tab="balance" class="tab">Workload summary</button
+          ><button data-tab="personnel" class="tab admin-only" hidden>
+            Personnel
+          </button>
+        </nav>
+        <section class="calendar-toolbar" aria-label="Period selection">
+          <div class="period-navigation">
+            <button
+              id="prevPeriod"
+              class="icon-button"
+              aria-label="Previous period"
+            >
+              ‹
+            </button>
+            <div>
+              <h2 id="periodTitle">Loading schedule</h2>
+              <p id="periodSubtitle" class="muted small"></p>
+            </div>
+            <button
+              id="nextPeriod"
+              class="icon-button"
+              aria-label="Next period"
+            >
+              ›
+            </button>
+          </div>
+          <div class="period-tools">
+            <label class="visually-hidden" for="monthPicker">Month</label
+            ><input id="monthPicker" type="month" /><button
+              id="todayButton"
+              class="button quiet"
+            >
+              Today
+            </button>
+            <div class="segments" role="group" aria-label="Schedule view">
+              <button data-view="first" class="selected">1–15</button
+              ><button data-view="second">16–end</button
+              ><button data-view="week">Week</button
+              ><button data-view="month">Month</button>
+            </div>
+          </div>
+        </section>
+        <div id="updatesBanner" class="updates-banner" role="status" hidden>
+          <span id="updatesText"></span>
+          <div>
+            <button id="viewUpdates" class="button quiet">View changes</button
+            ><button id="markSeen" class="button quiet">Mark as seen</button>
+          </div>
+        </div>
+        <section
+          id="stats"
+          class="stats"
+          aria-label="Visible-period summary"
+        ></section>
+        <section id="rosterPanel" class="panel" aria-labelledby="rosterTitle">
+          <div class="panel-head">
+            <div>
+              <h2 id="rosterTitle">The staff roster</h2>
+              <p class="muted small" id="rosterHint">
+                Click an MBD assignment to view its mission details.
+              </p>
+            </div>
+            <button id="bulkButton" class="button primary admin-only" hidden>
+              ＋ Assign a range
+            </button>
+          </div>
+          <div class="roster-controls">
+            <label class="search-field"
+              ><span aria-hidden="true">⌕</span
+              ><input
+                id="searchInput"
+                type="search"
+                placeholder="Find personnel or role…"
+                aria-label="Search personnel" /></label
+            ><label class="my-filter"
+              ><span>My schedule</span
+              ><select id="personFilter">
+                <option value="">All personnel</option>
+              </select></label
+            ><label class="checkbox-label"
+              ><input id="weekendsToggle" type="checkbox" checked /> Show
+              weekends</label
+            >
+          </div>
+          <div id="legend" class="legend"></div>
+          <div class="print-heading">
+            <h2>Northern Mindanao Regional Blood Center</h2>
+            <p id="printPeriod"></p>
+            <small
+              >Times shown in Philippine time · Verify the latest online roster
+              before reporting.</small
+            >
+          </div>
+          <div
+            id="rosterScroll"
+            class="roster-scroll"
+            tabindex="0"
+            aria-label="Scrollable personnel schedule"
+          >
+            <table id="rosterTable" class="roster-table"></table>
+          </div>
+          <div class="roster-footer">
+            <span id="lastSync">Not synced yet</span
+            ><span>— means unassigned; it does not mean a day off.</span>
+          </div>
+        </section>
+        <section id="eventsPanel" class="panel" hidden>
+          <div class="panel-head">
+            <div>
+              <h2>Mobile blood donation</h2>
+              <p class="muted small">
+                Locations, call times, expected donors, and the team assigned.
+              </p>
+            </div>
+            <button
+              id="addEventButton"
+              class="button primary admin-only"
+              hidden
+            >
+              ＋ Add MBD event
+            </button>
+          </div>
+          <div id="eventList" class="event-grid"></div>
+        </section>
+        <section id="changesPanel" class="panel" hidden>
+          <div class="panel-head">
+            <div>
+              <h2>What changed</h2>
+              <p class="muted small">
+                Changes are recorded automatically. All change notes are public.
+              </p>
+            </div>
+            <button id="loadOlderChanges" class="button outline">
+              Load older changes
+            </button>
+          </div>
+          <div id="changeList" class="change-list"></div>
+        </section>
+        <section id="balancePanel" class="panel" hidden>
+          <div class="panel-head">
+            <div>
+              <h2>Workload at a glance</h2>
+              <p class="muted small">
+                Assignment counts for the selected period, to help plan a
+                balanced roster.
+              </p>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table id="balanceTable" class="balance-table"></table>
+          </div>
+        </section>
+        <section id="personnelPanel" class="panel" hidden>
+          <div class="panel-head">
+            <div>
+              <h2>Personnel directory</h2>
+              <p class="muted small">
+                Archive personnel instead of deleting their schedule history.
+              </p>
+            </div>
+            <button id="addPersonnelButton" class="button primary">
+              ＋ Add personnel
+            </button>
+          </div>
+          <div id="personnelList" class="personnel-list"></div>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <span>NMRBC · Staff coordination</span
+        ><span id="footerMode">Public viewing · Admin editing</span>
+      </footer>
+    </div>
+    <dialog id="mainDialog">
+      <div class="dialog-heading">
+        <h2 id="dialogTitle"></h2>
+        <button id="closeDialog" class="icon-button" aria-label="Close dialog">
+          ×
+        </button>
+      </div>
+      <div id="dialogBody"></div>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <noscript
+      ><p class="error-banner">
+        Enable JavaScript to view the schedule.
+      </p></noscript
+    >
+  </body>
+</html>
