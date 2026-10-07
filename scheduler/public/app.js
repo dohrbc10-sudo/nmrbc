@@ -95,8 +95,6 @@ const visibleEvents = () =>
         a.event_date.localeCompare(b.event_date) ||
         a.call_time.localeCompare(b.call_time),
     );
-const noteField = () =>
-  '<label class="form-full">Public change note <textarea name="reason" minlength="3" maxlength="500" required rows="2" placeholder="Example: Coverage adjusted for the municipal blood drive."></textarea></label><p class="public-note form-full">Personnel names, event details, and this note are visible to everyone who opens the site.</p>';
 const formFoot = (label) =>
   `<p id="formError" class="form-error form-full" role="alert" hidden></p><div class="form-actions form-full"><button type="button" class="button outline" data-close>Cancel</button><button type="submit" class="button primary">${label}</button></div>`;
 const field = (label, name, value = "", type = "text", extra = "") =>
@@ -377,7 +375,7 @@ function renderChanges() {
               JSON.stringify(c.before_data?.[k]) !==
               JSON.stringify(c.after_data?.[k]),
           );
-          return `<article class="change-item"><span class="change-dot"></span><div><h3>${h(c.summary)}</h3><p>${h(c.reason)}</p><small>${h(c.actor_label)} · ${h(new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", dateStyle: "medium", timeStyle: "short" }).format(new Date(c.occurred_at)))} PHT</small>${fields.length ? `<details><summary>View changed details</summary><dl class="diff-list">${fields.map((k) => `<div><dt>${labels[k]}</dt><dd>${h(displayValue(k, c.before_data?.[k]))} → ${h(displayValue(k, c.after_data?.[k]))}</dd></div>`).join("")}</dl></details>` : ""}</div></article>`;
+          return `<article class="change-item"><span class="change-dot"></span><div><h3>${h(c.summary)}</h3><small>${h(c.actor_label)} · ${h(new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", dateStyle: "medium", timeStyle: "short" }).format(new Date(c.occurred_at)))} PHT</small>${fields.length ? `<details><summary>View changed details</summary><dl class="diff-list">${fields.map((k) => `<div><dt>${labels[k]}</dt><dd>${h(displayValue(k, c.before_data?.[k]))} → ${h(displayValue(k, c.after_data?.[k]))}</dd></div>`).join("")}</dl></details>` : ""}</div></article>`;
         })
         .join("")
     : '<p class="empty-state">No changes have been recorded yet.</p>';
@@ -501,7 +499,7 @@ function assignmentForm(personId, date) {
   );
   openDialog(
     `${person.name} · ${formatDate(date)}`,
-    `<form id="assignmentForm" class="form-grid"><label class="form-full">Assignment<select name="code">${codeOptions(a?.code)}</select></label><label class="form-full" id="eventSelectField">MBD event<select name="event_id"><option value="">Choose an event on this date</option>${available.map((e) => `<option value="${e.id}" ${e.id === a?.event_id ? "selected" : ""}>${h(e.title)} · ${h(e.location)}</option>`).join("")}</select><small>Create an event in the MBD events tab if it is not listed.</small></label><label class="form-full">Duty description <textarea name="description" maxlength="500" rows="2" placeholder="Optional details for this duty">${h(a?.description)}</textarea></label>${!person.active ? '<p class="public-note form-full">This personnel record is archived. You can clear an assignment; reactivate the person to assign a new duty.</p>' : ""}${noteField()}${formFoot("Save assignment")}</form>`,
+    `<form id="assignmentForm" class="form-grid"><label class="form-full">Assignment<select name="code">${codeOptions(a?.code)}</select></label><label class="form-full" id="eventSelectField">MBD event<select name="event_id"><option value="">Choose an event on this date</option>${available.map((e) => `<option value="${e.id}" ${e.id === a?.event_id ? "selected" : ""}>${h(e.title)} · ${h(e.location)}</option>`).join("")}</select><small>Create an event in the MBD events tab if it is not listed.</small></label><label class="form-full">Duty description <textarea name="description" maxlength="500" rows="2" placeholder="Optional details for this duty">${h(a?.description)}</textarea></label>${!person.active ? '<p class="public-note form-full">This personnel record is archived. You can clear an assignment; reactivate the person to assign a new duty.</p>' : ""}${formFoot("Save assignment")}</form>`,
   );
   const form = $("assignmentForm");
   const toggle = () => {
@@ -526,7 +524,7 @@ function assignmentForm(personId, date) {
           expected_version: a?.version || 0,
         },
       ],
-      p_reason: form.elements.reason.value,
+      p_reason: "Assignment updated automatically.",
     });
   });
 }
@@ -535,7 +533,7 @@ function personnelForm(id = null) {
   const p = s.data.personnel.find((p) => p.id === id);
   openDialog(
     p ? "Edit personnel" : "Add personnel",
-    `<form id="personnelForm" class="form-grid">${field("Personnel name", "name", p?.name, "text", 'required maxlength="120"')}${field("Role / designation", "role_label", p?.role_label, "text", 'maxlength="120"')}${field("Display order", "sort_order", p?.sort_order ?? s.data.personnel.length, "number", 'required min="0" max="100000" step="1"')}<label class="checkbox-label"><input type="checkbox" name="active" ${p?.active !== false ? "checked" : ""}> Active personnel</label><p class="public-note form-full">Archiving hides a person from new assignments and preserves their existing schedules and history.</p>${noteField()}${formFoot(p ? "Save personnel" : "Add personnel")}</form>`,
+    `<form id="personnelForm" class="form-grid">${field("Personnel name", "name", p?.name, "text", 'required maxlength="120"')}${field("Role / designation", "role_label", p?.role_label, "text", 'maxlength="120"')}${field("Display order", "sort_order", p?.sort_order ?? s.data.personnel.length, "number", 'required min="0" max="100000" step="1"')}<label class="checkbox-label"><input type="checkbox" name="active" ${p?.active !== false ? "checked" : ""}> Active personnel</label><p class="public-note form-full">Archiving hides a person from new assignments and preserves their existing schedules and history.</p>${formFoot(p ? "Save personnel" : "Add personnel")}</form>`,
   );
   const form = $("personnelForm");
   form.addEventListener("submit", (ev) => {
@@ -547,7 +545,7 @@ function personnelForm(id = null) {
       p_role_label: form.elements.role_label.value,
       p_sort_order: Number(form.elements.sort_order.value),
       p_active: form.elements.active.checked,
-      p_reason: form.elements.reason.value,
+      p_reason: "Personnel updated automatically.",
     });
   });
 }
@@ -586,7 +584,7 @@ function eventForm(id = null, prefillDate = null) {
             `<label class="checkbox-label"><input type="checkbox" name="crew" value="${p.id}" ${crew.includes(p.id) ? "checked" : ""}> ${h(p.name)}${p.active ? "" : " (archived; uncheck to save)"}</label>`,
         )
         .join("") || "<p>Add personnel before assigning a team.</p>"
-    }</div></fieldset>${noteField()}${formFoot("Save event & team")}</form>`,
+    }</div></fieldset>${formFoot("Save event & team")}</form>`,
   );
   const form = $("eventForm");
   form.addEventListener("submit", (ev) => {
@@ -611,7 +609,7 @@ function eventForm(id = null, prefillDate = null) {
       p_expected_version: e?.version || 0,
       p_event,
       p_crew: new FormData(form).getAll("crew"),
-      p_reason: values.reason,
+      p_reason: "MBD event and team updated automatically.",
     });
   });
 }
@@ -622,7 +620,7 @@ function bulkForm() {
     people = s.data.personnel.filter((p) => p.active);
   openDialog(
     "Assign a date range",
-    `<form id="bulkForm" class="form-grid">${field("From", "from", p.start, "date", `required min="${p.start}" max="${p.end}"`)}${field("Through", "through", p.end, "date", `required min="${p.start}" max="${p.end}"`)}<label>Assignment<select name="code" required>${codeOptions("", false).replace('<option value="">— Unassigned (clear this cell)</option>', '<option value="">Choose a duty</option>')}</select></label><label>Duty description<input name="description" maxlength="500"></label><label class="checkbox-label"><input type="checkbox" name="weekdays" checked> Weekdays only</label><label class="checkbox-label"><input type="checkbox" name="replace"> Replace existing duties</label><fieldset class="form-full"><legend>Personnel</legend><div class="crew-picker">${people.map((p) => `<label class="checkbox-label"><input type="checkbox" name="people" value="${p.id}" ${p.id === s.filter ? "checked" : ""}> ${h(p.name)}</label>`).join("")}</div></fieldset><p class="public-note form-full">Existing duties are skipped unless replacement is checked. MBD teams are assigned from the event editor. The whole range saves together, or nothing is changed if a conflict is found.</p>${noteField()}${formFoot("Apply assignments")}</form>`,
+    `<form id="bulkForm" class="form-grid">${field("From", "from", p.start, "date", `required min="${p.start}" max="${p.end}"`)}${field("Through", "through", p.end, "date", `required min="${p.start}" max="${p.end}"`)}<label>Assignment<select name="code" required>${codeOptions("", false).replace('<option value="">— Unassigned (clear this cell)</option>', '<option value="">Choose a duty</option>')}</select></label><label>Duty description<input name="description" maxlength="500"></label><label class="checkbox-label"><input type="checkbox" name="weekdays" checked> Weekdays only</label><label class="checkbox-label"><input type="checkbox" name="replace"> Replace existing duties</label><fieldset class="form-full"><legend>Personnel</legend><div class="crew-picker">${people.map((p) => `<label class="checkbox-label"><input type="checkbox" name="people" value="${p.id}" ${p.id === s.filter ? "checked" : ""}> ${h(p.name)}</label>`).join("")}</div></fieldset><p class="public-note form-full">Existing duties are skipped unless replacement is checked. MBD teams are assigned from the event editor. The whole range saves together, or nothing is changed if a conflict is found.</p>${formFoot("Apply assignments")}</form>`,
   );
   const form = $("bulkForm");
   form.addEventListener("submit", (ev) => {
@@ -667,7 +665,7 @@ function bulkForm() {
       return error("Select a smaller range (at most 5,000 assignments).");
     save(form, "scheduler_apply_assignments", {
       p_entries: entries,
-      p_reason: fd.get("reason"),
+      p_reason: "Assignments updated automatically.",
     });
   });
 }
