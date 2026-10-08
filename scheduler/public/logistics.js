@@ -2,6 +2,10 @@ import { CODES, html as h } from "./core.js";
 export const ROLES = ["MT", "HPO", "Driver", "MO", "Regular"];
 export const ROLE_ORDER = ["MT", "HPO", "MO", "Regular", "Driver"];
 export const TITLES = [
+  "Mobile Blood Activity",
+  "Training",
+  "NMMC Testing",
+  "Meeting",
 ];
 export const DUTIES = { AM: ["AM/T", "AM/C", "AM/L", "AM/D"], PM: ["PM/T", "PM/C"] };
 export function roleOf(p) {
