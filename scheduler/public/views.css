@@ -1,0 +1,1035 @@
+/* Shared display controls */
+.theme-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.theme-control select {
+  width: auto;
+  min-width: 80px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+}
+#stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  padding: 3px 7px;
+  margin: 0 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+}
+#stats .stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#stats .stat + .stat {
+  border-left: 1px solid var(--line);
+}
+#stats .stat p {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+}
+#stats .stat > strong {
+  display: inline;
+  font-size: 14px;
+  font-weight: 650;
+  margin: 0;
+  color: var(--ink);
+}
+#stats .stat > small {
+  display: none;
+}
+.tabs {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  overflow: visible;
+  border-bottom: 0;
+  padding: 0;
+  margin: 0 0 14px;
+}
+.tabs .tab {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.tabs .tab.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.tabs .tab:hover {
+  border-color: var(--accent);
+}
+.roster-actions,
+.view-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.view-controls {
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.view-segments {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.view-segments button {
+  padding: 8px 13px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+.view-segments button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 650;
+}
+.view-controls .button {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.view-controls .theme-control {
+  margin-left: auto;
+}
+.roster-stage {
+  position: relative;
+}
+/* Fit every visible personnel row into the screen. Text scales with the table. */
+body.compact-roster .page-heading {
+  display: none;
+}
+body.compact-roster .topbar {
+  height: 54px;
+}
+body.compact-roster main {
+  padding-top: 12px;
+}
+body.compact-roster .tabs .tab {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+body.compact-roster .calendar-toolbar {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin-bottom: 8px;
+}
+body.compact-roster #stats {
+  margin-bottom: 8px;
+}
+body.compact-roster #stats .stat {
+  padding: 6px 10px;
+}
+body.compact-roster .panel-head {
+  padding: 12px 16px;
+}
+body.compact-roster .roster-controls {
+  padding: 8px 16px;
+}
+body.compact-roster .view-controls {
+  padding: 8px 16px;
+}
+body.compact-roster .legend {
+  display: none;
+}
+body.compact-roster #modeBanner {
+  padding: 5px 10px;
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.compact-roster #updatesBanner {
+  padding: 5px 10px;
+  gap: 6px;
+  flex-direction: row;
+  font-size: 10px;
+}
+body.compact-roster #updatesText {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.compact-roster #updatesBanner > div {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+}
+body.compact-roster #updatesBanner .button {
+  padding: 5px;
+  font-size: 10px;
+}
+body.compact-roster #rosterScroll {
+  overflow: hidden;
+  max-height: none;
+}
+body.compact-roster #rosterTable {
+  width: var(--fit-table-width, 100%);
+  min-width: 0 !important;
+  table-layout: fixed;
+  transform: scale(var(--roster-scale, 1));
+  transform-origin: top left;
+}
+body.compact-roster #rosterTable .person-col {
+  width: 160px;
+  padding: 0 8px;
+}
+body.compact-roster #rosterTable tbody .person-col > strong {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 24px;
+}
+body.compact-roster #rosterTable tbody .person-col > small {
+  display: none;
+}
+body.compact-roster #rosterTable tbody tr,
+body.compact-roster #rosterTable tbody th,
+body.compact-roster #rosterTable tbody td {
+  height: 26px;
+}
+body.compact-roster #rosterTable td {
+  padding: 0;
+}
+body.compact-roster #rosterTable .shift {
+  min-height: 0;
+  height: 25px;
+  padding: 2px 1px;
+  font-size: 10px;
+  line-height: 20px;
+  border-radius: 3px;
+}
+body.compact-roster #rosterTable .shift small {
+  display: none;
+}
+body.compact-roster #rosterTable thead th {
+  height: 38px;
+  padding: 2px;
+  font-size: 10px;
+}
+body.compact-roster #rosterTable thead th > small {
+  font-size: 8px;
+  margin: 0;
+}
+body.compact-roster #rosterTable tfoot {
+  font-size: 8px;
+}
+body.compact-roster #rosterTable tfoot td {
+  height: 25px;
+  font-size: 8px;
+}
+body.compact-roster #rosterTable tfoot .person-col {
+  height: 25px;
+}
+body.compact-roster #rosterTable tfoot th > small {
+  display: none;
+}
+body.compact-roster .roster-footer {
+  padding: 8px 14px;
+  font-size: 10px;
+}
+body.compact-roster #rosterPanel {
+  margin-bottom: 12px;
+}
+/* Browser fullscreen, with a full-window fallback for unsupported browsers. */
+body.roster-fullscreen {
+  overflow: hidden;
+}
+body.roster-fullscreen .app-shell {
+  position: fixed;
+  inset: 0;
+  max-width: none;
+  width: 100%;
+  padding: 12px;
+  background: var(--bg);
+  z-index: 100;
+  overflow: hidden;
+}
+body.roster-fullscreen .topbar,
+body.roster-fullscreen .page-heading,
+body.roster-fullscreen #stats,
+body.roster-fullscreen .tabs,
+body.roster-fullscreen .calendar-toolbar,
+body.roster-fullscreen .mode-banner,
+body.roster-fullscreen .updates-banner,
+body.roster-fullscreen .site-footer {
+  display: none !important;
+}
+body.roster-fullscreen main {
+  padding: 0;
+}
+body.roster-fullscreen main > section:not(#rosterPanel) {
+  display: none !important;
+}
+body.roster-fullscreen #rosterPanel {
+  display: block !important;
+  margin: 0;
+  height: calc(100dvh - 24px);
+}
+body.roster-fullscreen .panel-head {
+  padding: 10px 15px;
+}
+body.roster-fullscreen .panel-head h2 {
+  font-size: 18px;
+}
+body.roster-fullscreen #rosterHint {
+  display: none;
+}
+/* Enlarged, organized calendar date */
+#mainDialog.day-view-dialog,
+#mainDialog.print-view-dialog {
+  width: min(1220px, 96vw);
+  max-width: 1220px;
+  max-height: 94dvh;
+}
+#mainDialog.day-view-dialog #dialogBody {
+  padding: 20px;
+}
+.expanded-day-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.expanded-day-toolbar > span {
+  flex: 1;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+}
+.expanded-day-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.5fr);
+  gap: 22px;
+}
+.expanded-day-layout h2 {
+  font-size: 17px;
+  margin: 0 0 14px;
+}
+.expanded-event,
+.day-duty-group {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.expanded-event-head {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.expanded-event h3,
+.day-duty-group h3 {
+  font-size: 15px;
+  margin: 0 0 9px;
+}
+.expanded-event p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.expanded-event-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+.expanded-event-facts dt {
+  font-size: 10px;
+  color: var(--muted);
+}
+.expanded-event-facts dd {
+  font-size: 12px;
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+.expanded-event details {
+  font-size: 12px;
+  margin: 12px 0;
+}
+.expanded-event summary {
+  cursor: pointer;
+}
+.expanded-event-notes {
+  white-space: pre-wrap;
+}
+.day-duty-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.day-duty-group {
+  margin: 0;
+}
+.day-duty-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.day-duty-group li {
+  display: flex;
+  gap: 8px;
+  align-items: start;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+}
+.day-duty-group li strong {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.day-duty-group li small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+.day-duty-group li p {
+  font-size: 11px;
+  margin: 4px 0 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.day-duty-group .button {
+  font-size: 11px;
+  padding: 5px 8px;
+}
+.day-duty-group.needs-reassignment {
+  border-color: #d49520;
+}
+/* One landscape page with a complete month and indexed activity details. */
+.print-preview-tools {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+.print-preview-frame {
+  width: 100%;
+  overflow: hidden;
+  background: #e7ebf0;
+  position: relative;
+}
+.print-sheet {
+  position: relative;
+  width: 277mm;
+  height: 188mm;
+  background: #fff !important;
+  color: #17232e !important;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.print-preview-frame .print-sheet {
+  transform: scale(var(--preview-scale, 1));
+  transform-origin: top left;
+}
+.print-content {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: top left;
+  padding: 7px 6px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  color: #17232e;
+  background: white;
+  box-sizing: border-box;
+}
+.print-document-heading {
+  text-align: center;
+  margin: 0 0 8px;
+}
+.print-document-heading h1 {
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+.print-document-heading h2 {
+  font-size: 12px;
+  margin: 0;
+}
+.print-document-heading p {
+  font-size: 9px;
+  margin: 5px 0 0;
+}
+.print-roster {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  font-size: 8px;
+}
+.print-roster th,
+.print-roster td {
+  border: 1px solid #bbc4ce;
+  padding: 3px 1px;
+  text-align: center;
+  vertical-align: middle;
+}
+.print-roster th:first-child {
+  width: 125px;
+  text-align: left;
+  padding: 3px 5px;
+}
+.print-roster thead th {
+  background: #e7eef6;
+  color: #17232e;
+}
+.print-roster small {
+  display: block;
+  font-size: 6px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+.print-roster tbody tr:nth-child(even) {
+  background: #f1f5fa;
+}
+.print-roster .print-cancelled {
+  background: #fff1d8;
+  color: #7f4b08;
+}
+.print-code-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 7px;
+  margin: 6px 0 8px;
+}
+.print-activities > h2,
+.print-duty-notes > h2 {
+  font-size: 10px;
+  margin: 7px 0 5px;
+}
+.print-event-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 12px;
+}
+.print-event {
+  border-top: 1px solid #bfcad5;
+  padding-top: 4px;
+}
+.print-event h3 {
+  font-size: 9px;
+  margin: 0 0 3px;
+}
+.print-event p,
+.print-duty-notes p {
+  font-size: 8px;
+  margin: 2px 0;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.print-notes {
+  white-space: pre-wrap;
+}
+.print-document-footer {
+  font-size: 7px;
+  margin: 8px 0 0;
+}
+#viewPrintOutput {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+/* Theme applies to both schedule tables and dialogs; print paper stays white. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e3ebf5;
+  --muted: #a7b7cb;
+  --line: #34465e;
+  --paper: #172439;
+  --bg: #101a2a;
+  --accent: #f3a5b0;
+  --accent-soft: #422b3b;
+  --green: #a7dbbd;
+}
+[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--ink);
+}
+[data-theme="dark"] .panel,
+[data-theme="dark"] .event-card,
+[data-theme="dark"] .personnel-item,
+[data-theme="dark"] .day-event-button,
+[data-theme="dark"] dialog,
+[data-theme="dark"] .day-duty-group,
+[data-theme="dark"] .expanded-event {
+  background: var(--paper);
+  color: var(--ink);
+}
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: #132035;
+  color: var(--ink);
+  border-color: var(--line);
+}
+[data-theme="dark"] .button.outline,
+[data-theme="dark"] .button.quiet,
+[data-theme="dark"] .icon-button {
+  color: var(--ink);
+  background: var(--paper);
+  border-color: var(--line);
+}
+[data-theme="dark"] .button.primary {
+  background: #982e3a;
+  color: #fff;
+}
+[data-theme="dark"] .segments {
+  background: var(--paper);
+  border-color: var(--line);
+}
+[data-theme="dark"] .segments button {
+  color: var(--ink);
+}
+[data-theme="dark"] .segments button.selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+[data-theme="dark"] .count {
+  background: #2b405a;
+  color: #e3ebf5;
+}
+[data-theme="dark"] .tab.active .count {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+[data-theme="dark"] .button.dark {
+  background: #d3e3f7;
+  color: #15243b;
+}
+[data-theme="dark"] .detail-hero {
+  background: #26314a;
+}
+[data-theme="dark"] .detail-hero a {
+  color: #f3a5b0;
+}
+[data-theme="dark"] .calendar-date,
+[data-theme="dark"] .calendar-day-panel,
+[data-theme="dark"] .calendar-weekdays,
+[data-theme="dark"] .calendar-month {
+  background: var(--paper);
+  color: var(--ink);
+}
+[data-theme="dark"] .calendar-date.weekend {
+  background: #1d2c40;
+}
+[data-theme="dark"] .calendar-date.selected {
+  background: #2a3e5c;
+  border-color: #aac9f0;
+}
+[data-theme="dark"] .calendar-date.is-today {
+  box-shadow: inset 0 0 0 1px #f3a5b0;
+}
+[data-theme="dark"] .calendar-outside {
+  background: #111c2d;
+  color: #73859f;
+}
+[data-theme="dark"] .calendar-duty-total,
+[data-theme="dark"] .calendar-duty-summary,
+[data-theme="dark"] .calendar-names,
+[data-theme="dark"] .day-event-time {
+  color: #c7d9f0;
+}
+[data-theme="dark"] .day-counts span {
+  background: #263851;
+  color: #d9e6f7;
+}
+[data-theme="dark"] .calendar-event {
+  background: #382b50;
+  color: #e9d8ff;
+}
+[data-theme="dark"] .calendar-event.cancelled {
+  background: #4d2d37;
+  color: #ffd0d7;
+}
+[data-theme="dark"] #rosterTable tbody tr:nth-child(odd),
+[data-theme="dark"] #balanceTable tbody tr:nth-child(odd) {
+  --row-wash: #172439;
+}
+[data-theme="dark"] #rosterTable tbody tr:nth-child(even),
+[data-theme="dark"] #balanceTable tbody tr:nth-child(even) {
+  --row-wash: #1d2e44;
+}
+[data-theme="dark"] #rosterTable tbody .person-col,
+[data-theme="dark"] #balanceTable tbody th {
+  color: var(--ink);
+  border-left-color: #6b85a7;
+}
+[data-theme="dark"] #rosterTable thead th,
+[data-theme="dark"] #rosterTable thead .person-col,
+[data-theme="dark"] #balanceTable thead th {
+  background: #2b405a;
+  color: #edf5ff;
+}
+[data-theme="dark"] #rosterTable thead th.weekend {
+  background: #253950;
+}
+[data-theme="dark"] #rosterTable thead th.today {
+  background: #982e3a;
+  color: #fff;
+}
+[data-theme="dark"] #rosterTable th,
+[data-theme="dark"] #rosterTable td {
+  border-color: #34465e;
+}
+[data-theme="dark"] #rosterTable tfoot th,
+[data-theme="dark"] #rosterTable tfoot td {
+  background: #172439;
+  color: #bdcfe6;
+}
+[data-theme="dark"] #rosterTable tbody tr:hover > td,
+[data-theme="dark"] #rosterTable tbody tr:hover > .person-col,
+[data-theme="dark"] #rosterTable tbody tr:focus-within > td,
+[data-theme="dark"] #rosterTable tbody tr:focus-within > .person-col {
+  background: #263951;
+}
+[data-theme="dark"] #personnelList .personnel-item:nth-child(odd),
+[data-theme="dark"] .day-personnel-row:nth-child(odd) {
+  background: #172439;
+}
+[data-theme="dark"] #personnelList .personnel-item:nth-child(even),
+[data-theme="dark"] .day-personnel-row:nth-child(even) {
+  background: #1d2e44;
+}
+[data-theme="dark"] .shift.am-t {
+  background: #574722;
+  color: #ffedbd;
+}
+[data-theme="dark"] .shift.am-c {
+  background: #354c2b;
+  color: #e0f2c5;
+}
+[data-theme="dark"] .shift.am {
+  background: #24484b;
+  color: #c8edef;
+}
+[data-theme="dark"] .shift.pm {
+  background: #303e66;
+  color: #e0e9ff;
+}
+[data-theme="dark"] .shift.mbd {
+  background: #493462;
+  color: #eadcff;
+}
+[data-theme="dark"] .shift.office {
+  background: #224c43;
+  color: #ccf0e8;
+}
+[data-theme="dark"] .shift.training {
+  background: #2d4563;
+  color: #d9eaff;
+}
+[data-theme="dark"] .shift.off {
+  background: #344157;
+  color: #dce4ef;
+}
+[data-theme="dark"] .shift.leave {
+  background: #503944;
+  color: #ffdeea;
+}
+[data-theme="dark"] .shift.cancelled-duty {
+  background: #513d21 !important;
+  color: #ffe4b9 !important;
+}
+[data-theme="dark"] .driver-warning {
+  background: #40351f;
+  color: #ffe5b8;
+  border-color: #a68043;
+}
+[data-theme="dark"] .updates-banner {
+  background: #402c3a;
+  color: #ffd1da;
+}
+[data-theme="dark"] .mode-banner {
+  background: #393223;
+  color: #f5d8a7;
+}
+[data-theme="dark"] .form-error,
+[data-theme="dark"] .error-banner {
+  background: #472b38;
+  color: #ffd4dc;
+}
+[data-theme="dark"] .companion-lines li span {
+  color: #b4c5dc;
+}
+[data-theme="dark"] .print-preview-frame {
+  background: #26354b;
+}
+@media (max-width: 900px) {
+  .expanded-day-layout {
+    grid-template-columns: 1fr;
+  }
+  .day-duty-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #stats .stat {
+    padding: 8px;
+  }
+  #stats .stat p {
+    font-size: 11px;
+  }
+  .topbar {
+    height: auto;
+    min-height: 80px;
+    padding: 12px 0;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .view-controls .theme-control {
+    margin-left: 0;
+  }
+}
+@media (max-width: 650px) {
+  #stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #stats .stat:nth-child(3) {
+    border-left: 0;
+  }
+  .tabs .tab {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .tabs {
+    gap: 7px;
+  }
+  .panel-head {
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .roster-actions {
+    width: 100%;
+  }
+  .roster-actions .button {
+    flex: 1;
+    font-size: 12px;
+    padding: 9px;
+  }
+  .view-controls {
+    padding: 10px;
+    gap: 7px;
+  }
+  .view-controls > button {
+    flex: 1;
+  }
+  .view-controls > span {
+    width: 100%;
+  }
+  .header-actions .theme-control {
+    font-size: 11px;
+  }
+  .header-actions .theme-control select {
+    min-width: 70px;
+    padding: 6px;
+  }
+  .header-actions {
+    gap: 6px;
+  }
+  .view-controls .theme-control {
+    margin-left: auto;
+  }
+  .expanded-day-toolbar > span {
+    order: -1;
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .expanded-day-toolbar .button {
+    font-size: 11px;
+    padding: 8px;
+  }
+  .day-duty-groups {
+    grid-template-columns: 1fr;
+  }
+  #mainDialog.day-view-dialog #dialogBody {
+    padding: 12px;
+  }
+  .expanded-event {
+    padding: 12px;
+  }
+  .print-preview-tools {
+    flex-wrap: wrap;
+  }
+  .print-preview-tools .button {
+    width: 100%;
+  }
+  body.compact-roster .topbar {
+    height: auto;
+    min-height: 55px;
+    padding: 6px 0;
+  }
+  body.compact-roster .topbar .theme-control {
+    display: none;
+  }
+  body.compact-roster .calendar-toolbar {
+    gap: 6px;
+  }
+  body.compact-roster #periodSubtitle {
+    display: none;
+  }
+  body.compact-roster .period-navigation h2 {
+    font-size: 15px;
+  }
+  body.compact-roster .period-tools {
+    gap: 5px;
+  }
+  body.compact-roster .period-tools input {
+    padding: 5px;
+    font-size: 12px;
+  }
+  body.compact-roster .period-tools .button,
+  body.compact-roster .segments button {
+    padding: 5px 7px;
+    font-size: 10px;
+  }
+  body.compact-roster .view-controls {
+    padding: 6px 8px;
+    gap: 5px;
+  }
+  body.compact-roster .view-controls .button,
+  body.compact-roster .view-segments button {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  body.compact-roster #viewPeriodLabel {
+    display: none;
+  }
+  body.compact-roster #compactStatus {
+    width: auto;
+    font-size: 10px;
+  }
+  body.compact-roster .view-controls .theme-control {
+    margin-left: 0;
+  }
+  body.compact-roster .tabs {
+    gap: 4px;
+    margin-bottom: 7px;
+  }
+  body.compact-roster .tabs .tab {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  body.compact-roster .roster-controls {
+    display: none;
+  }
+  body.compact-roster .roster-actions {
+    width: auto;
+  }
+  body.compact-roster .panel-head {
+    padding: 7px 10px;
+  }
+  body.compact-roster .panel-head > div:first-child {
+    display: none;
+  }
+  body.compact-roster #rosterTable .person-col {
+    width: 130px;
+  }
+  body.roster-fullscreen .app-shell {
+    padding: 5px;
+  }
+  body.roster-fullscreen #rosterPanel {
+    height: calc(100dvh - 10px);
+  }
+}
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+  html,
+  body {
+    margin: 0 !important;
+    background: #fff !important;
+    color: #17232e !important;
+  }
+  .view-controls {
+    display: none !important;
+  }
+  body.native-printing #rosterTable {
+    transform: none !important;
+    width: 100% !important;
+  }
+  body.native-printing #rosterStage {
+    height: auto !important;
+  }
+  body.native-printing .app-shell {
+    position: static !important;
+    padding: 0 !important;
+  }
+  body.print-sheet-mode > :not(#viewPrintOutput) {
+    display: none !important;
+  }
+  body.print-sheet-mode #viewPrintOutput {
+    display: block !important;
+    position: static !important;
+    visibility: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body.print-sheet-mode .print-sheet {
+    margin: 0;
+    transform: none !important;
+    box-shadow: none;
+    border: 0;
+    break-inside: avoid;
+  }
+  body.print-sheet-mode .print-content {
+    color: #17232e !important;
+  }
+  body.print-sheet-mode .print-content * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .duty-tooltip {
+    display: none !important;
+  }
+}
+
+[data-theme="dark"] .dialog-heading {
+  background: var(--paper);
+  color: var(--ink);
+}

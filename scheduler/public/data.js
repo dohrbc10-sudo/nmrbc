@@ -128,11 +128,13 @@ export class DemoStore {
   }
   async load() {
     this.reload();
-    return structuredClone(this.data);
+    const visible = structuredClone(this.data);
+    visible.changes = visible.changes.filter((c) => c.action !== "insert");
+    return visible;
   }
   async older(id) {
     return this.data.changes
-      .filter((c) => BigInt(c.id) < BigInt(id))
+      .filter((c) => c.action !== "insert" && BigInt(c.id) < BigInt(id))
       .slice(0, 50);
   }
   async write(name, args) {
@@ -160,6 +162,7 @@ export class DemoStore {
     }
   }
   log(resource, before, after, reason) {
+    if (!before) return;
     if (
       before &&
       after &&
@@ -447,6 +450,7 @@ export class LiveStore {
     const { data, error } = await this.client
       .from("scheduler_changes")
       .select("*")
+      .neq("action", "insert")
       .lt("id", id)
       .order("id", { ascending: false })
       .limit(50);

@@ -1,3 +1,4 @@
+import { createViewControls } from "./views.js";
 import {
   ROLES,
   TITLES,
@@ -53,6 +54,7 @@ const s = {
   calendarNames: false,
   calendarDuty: "duty",
 };
+let viewControls;
 let store,
   client,
   demo = false,
@@ -144,10 +146,17 @@ function download(text, name, type) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-function openDialog(title, body) {
+function openDialog(title, body, kind = "") {
   if (s.saving) return;
+  const backDay = $("mainDialog").dataset.dayView;
+  $("mainDialog").classList.remove("day-view-dialog", "print-view-dialog");
+  delete $("mainDialog").dataset.dayView;
+  if (kind) $("mainDialog").classList.add(kind);
   $("dialogTitle").textContent = title;
-  $("dialogBody").innerHTML = body;
+  $("dialogBody").innerHTML =
+    (backDay && kind !== "day-view-dialog" && kind !== "print-view-dialog"
+      ? `<button class="button quiet return-day" data-back-day="${backDay}">‹ Back to day view</button>`
+      : "") + body;
   if (!$("mainDialog").open) $("mainDialog").showModal();
   $("dialogBody").querySelector("input,select,textarea,button")?.focus();
 }
@@ -178,7 +187,7 @@ function render() {
   document.body.classList.toggle("calendar-view", s.tab === "calendar");
   document.querySelector(".segments").hidden = s.tab === "calendar";
   $("printButton").textContent =
-    s.tab === "calendar" ? "Print calendar" : "Print roster";
+    s.tab === "calendar" ? "Print calendar" : "Print view";
   const p = selection(),
     ds = days(),
     people = visiblePeople();
@@ -298,6 +307,7 @@ function render() {
   $("printPeriod").textContent =
     `${formatDate(p.start)} – ${formatDate(p.end)}${s.filter ? " · " + (s.data.personnel.find((p) => p.id === s.filter)?.name || "") : ""}${!s.weekends ? " · Weekdays only" : ""}${demo ? " · DEMO SCHEDULE" : ""}`;
   updateNotice();
+  viewControls?.update();
 }
 function renderCalendar() {
   const month = s.anchor.slice(0, 7);
@@ -480,6 +490,7 @@ async function refresh(quiet = false) {
   try {
     const data = await store.load(start, end);
     if (epoch !== s.epoch) return;
+    data.changes = data.changes.filter((c) => c.action !== "insert");
     s.data = data;
     s.sync = new Date();
     $("errorBanner").hidden = true;
@@ -512,7 +523,7 @@ async function save(form, name, args) {
     s.saving = false;
     $("mainDialog").close();
     await refresh(true);
-    toast("Saved. The change history has been updated.");
+    toast("Saved.");
   } catch (error) {
     const el = $("formError");
     el.hidden = false;
@@ -915,6 +926,18 @@ async function authState() {
   render();
 }
 function bind() {
+  viewControls = createViewControls({
+    getState: () => s,
+    organization: () =>
+      config.organization || "Northern Mindanao Regional Blood Center",
+    openDialog,
+    addEvent: (date) => eventForm(null, date),
+    toast,
+    onDaySelection: (date) => {
+      s.calendarDate = date;
+      renderCalendar();
+    },
+  });
   const tip = document.createElement("div");
   tip.className = "duty-tooltip";
   tip.hidden = true;
@@ -957,6 +980,7 @@ function bind() {
   document.addEventListener("click", (ev) => {
     const b = ev.target.closest("button");
     if (!b || b.disabled) return;
+    if (b.dataset.backDay) viewControls.openDay(b.dataset.backDay);
     if (b.dataset.tab) {
       s.tab = b.dataset.tab;
       render();
@@ -964,12 +988,7 @@ function bind() {
     if (b.dataset.calendarDay) {
       s.calendarDate = b.dataset.calendarDay;
       renderCalendar();
-      if (matchMedia("(max-width:650px)").matches) {
-        $("calendarDayTitle").focus({ preventScroll: true });
-        document
-          .querySelector(".calendar-day-panel")
-          .scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      viewControls.openDay(s.calendarDate);
     }
     if (b.dataset.view) {
       s.view = b.dataset.view;
@@ -1063,6 +1082,7 @@ function bind() {
     renderCalendar();
   };
   $("calendarAddEvent").onclick = () => eventForm(null, s.calendarDate);
+  $("rosterAddEvent").onclick = () => eventForm();
   $("bulkButton").onclick = bulkForm;
   $("addEventButton").onclick = () => eventForm();
   $("addPersonnelButton").onclick = () => personnelForm();
@@ -1124,7 +1144,8 @@ function bind() {
   $("printButton").onclick = () => {
     if (s.tab !== "calendar") s.tab = "roster";
     render();
-    window.print();
+    if (s.tab === "calendar") window.print();
+    else viewControls.openPrint();
   };
   window.addEventListener("focus", () => refresh(true));
   document.addEventListener("visibilitychange", () => {

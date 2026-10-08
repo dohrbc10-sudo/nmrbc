@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./calendar.css" />
     <link rel="stylesheet" href="./logistics.css" />
+    <link rel="stylesheet" href="./views.css" />
     <style id="personnel-row-colors">
       /* Simple white / pale blue personnel rows. */
       #rosterTable tbody tr:nth-child(odd),
@@ -135,7 +136,17 @@
           ></a
         >
         <div class="header-actions">
-          <span id="connectionBadge" class="connection">Connecting…</span
+          <label class="theme-control"
+            >Theme<select
+              id="themeSelect"
+              data-theme-picker
+              aria-label="Color theme"
+            >
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="system">System</option>
+            </select></label
+          ><span id="connectionBadge" class="connection">Connecting…</span
           ><button id="loginButton" class="button outline">Admin login</button
           ><button id="logoutButton" class="button outline" hidden>
             Sign out
@@ -157,6 +168,11 @@
             ><button id="printButton" class="button dark">Print roster</button>
           </div>
         </section>
+        <section
+          id="stats"
+          class="stats"
+          aria-label="Visible-period summary"
+        ></section>
         <nav class="tabs" aria-label="Schedule sections">
           <button data-tab="roster" class="tab active">Staff roster</button
           ><button data-tab="calendar" class="tab">Activity calendar</button
@@ -204,7 +220,7 @@
               <button data-view="first" class="selected">1–15</button
               ><button data-view="second">16–end</button
               ><button data-view="week">Week</button
-              ><button data-view="month">Month</button>
+              ><button data-view="month">Whole month</button>
             </div>
           </div>
         </section>
@@ -215,11 +231,6 @@
             ><button id="markSeen" class="button quiet">Mark as seen</button>
           </div>
         </div>
-        <section
-          id="stats"
-          class="stats"
-          aria-label="Visible-period summary"
-        ></section>
         <section id="rosterPanel" class="panel" aria-labelledby="rosterTitle">
           <div class="panel-head">
             <div>
@@ -228,9 +239,52 @@
                 Click an MBD assignment to view its mission details.
               </p>
             </div>
-            <button id="bulkButton" class="button primary admin-only" hidden>
-              ＋ Assign a range
-            </button>
+            <div class="roster-actions">
+              <button
+                id="rosterAddEvent"
+                class="button outline admin-only"
+                hidden
+              >
+                ＋ Add MBD Event</button
+              ><button id="bulkButton" class="button primary admin-only" hidden>
+                ＋ Assign a range
+              </button>
+            </div>
+          </div>
+          <div class="view-controls" aria-label="Roster view options">
+            <div class="view-segments" role="group" aria-label="Roster density">
+              <button type="button" id="normalView" aria-pressed="true">
+                Normal</button
+              ><button type="button" id="compactView" aria-pressed="false">
+                Compact
+              </button>
+            </div>
+            <button type="button" id="printViewButton" class="button outline">
+              ▤ Print view</button
+            ><button
+              type="button"
+              id="fullscreenButton"
+              class="button outline"
+              aria-pressed="false"
+            >
+              ⛶ Full screen</button
+            ><label class="theme-control"
+              >Theme<select
+                id="rosterThemeSelect"
+                data-theme-picker
+                aria-label="Roster color theme"
+              >
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="system">System</option>
+              </select></label
+            ><span id="viewPeriodLabel" class="muted small"></span
+            ><span
+              id="compactStatus"
+              class="muted small"
+              role="status"
+              hidden
+            ></span>
           </div>
           <div class="roster-controls">
             <label class="search-field"
@@ -265,7 +319,9 @@
             tabindex="0"
             aria-label="Scrollable personnel schedule"
           >
-            <table id="rosterTable" class="roster-table"></table>
+            <div id="rosterStage" class="roster-stage">
+              <table id="rosterTable" class="roster-table"></table>
+            </div>
           </div>
           <div class="roster-footer">
             <span id="lastSync">Not synced yet</span
@@ -378,7 +434,10 @@
           <div class="panel-head">
             <div>
               <h2>What changed</h2>
-              <p class="muted small">Changes are recorded automatically.</p>
+              <p class="muted small">
+                Edits to existing records are recorded automatically. Initial
+                entries are not listed.
+              </p>
             </div>
             <button id="loadOlderChanges" class="button outline">
               Load older changes
