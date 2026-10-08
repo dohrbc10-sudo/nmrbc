@@ -7,7 +7,7 @@ export const TITLES = [
   "NMMC Testing",
   "Meeting",
 ];
-export const DUTIES = { AM: ["AM/T", "AM/C", "AM/L", "AM/D"], PM: ["PM/T"] };
+export const DUTIES = { AM: ["AM/T", "AM/C", "AM/L", "AM/D"], PM: ["PM/T", "PM/C"] };
 export function roleOf(p) {
   const r = (p?.role_label || "").trim();
   const known = ROLES.find((x) => x.toLowerCase() === r.toLowerCase());

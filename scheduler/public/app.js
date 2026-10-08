@@ -419,6 +419,7 @@ function renderBalance(people, ds) {
     "AM/L",
     "AM/D",
     "PM/T",
+    "PM/C",
     "CANCELLED",
     "AM",
     "PM",
