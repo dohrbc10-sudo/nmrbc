@@ -22,7 +22,8 @@ export function monthCells(anchor) {
     },
   );
 }
-export const isOnDuty = (a) => Boolean(a && !["OFF", "LEAVE"].includes(a.code));
+export const isOnDuty = (a) =>
+  Boolean(a && !["OFF", "LEAVE", "CANCELLED"].includes(a.code));
 export function calendarModel(data) {
   const eventBy = new Map(data.events.map((e) => [e.id, e]));
   const assignments = new Map();
@@ -52,7 +53,11 @@ export function calendarModel(data) {
       const counts = { AM: 0, PM: 0, MBD: 0, OFFICE: 0, TRAINING: 0 };
       for (const row of duty) {
         const code = row.assignment.code;
-        const group = code.startsWith("AM") ? "AM" : code;
+        const group = code.startsWith("AM")
+          ? "AM"
+          : code.startsWith("PM")
+            ? "PM"
+            : code;
         counts[group] = (counts[group] || 0) + 1;
       }
       return {
@@ -72,7 +77,9 @@ export function filterDayPersonnel(day, filter = "duty") {
   return day.duty.filter((r) =>
     filter === "AM"
       ? r.assignment.code.startsWith("AM")
-      : r.assignment.code === filter,
+      : filter === "PM"
+        ? r.assignment.code.startsWith("PM")
+        : r.assignment.code === filter,
   );
 }
 export function monthMarkup(model, anchor, selected, showNames = false) {
@@ -86,7 +93,7 @@ export function monthMarkup(model, anchor, selected, showNames = false) {
         .slice(0, 2)
         .map(
           (e) =>
-            `<span class="calendar-event ${e.status === "cancelled" ? "cancelled" : ""}" title="${h(e.title + " · " + e.location + " · " + e.call_time.slice(0, 5) + " PHT · " + e.status)}"><b>${e.status === "cancelled" ? "Cancelled" : "MBD"}</b><span class="calendar-event-title"> ${h(e.title)}</span></span>`,
+            `<span class="calendar-event ${e.status === "cancelled" ? "cancelled" : ""}" title="${h(e.title + " · " + e.location + " · " + e.call_time.slice(0, 5) + " PHT · " + e.status)}"><b>${e.status === "cancelled" ? "Cancelled" : e.assignment_code === "TRAINING" ? "Training" : e.assignment_code === "OFFICE" ? "Meeting" : e.assignment_code === "AM/T" ? "Testing" : "MBD"}</b><span class="calendar-event-title"> ${h(e.title)}</span></span>`,
         )
         .join("");
       const primary = ["AM", "PM"]
@@ -108,7 +115,7 @@ export function monthMarkup(model, anchor, selected, showNames = false) {
                 "<br>",
               )}${d.duty.length > 2 ? "<br>+" + (d.duty.length - 2) + " more" : ""}</span>`
           : "";
-      return `<button class="calendar-date ${weekend ? "weekend" : ""} ${date === today() ? "is-today" : ""} ${date === selected ? "selected" : ""}" type="button" data-calendar-day="${date}" aria-pressed="${date === selected}" aria-label="${h(formatDate(date, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) + ", " + d.events.length + " MBD events, " + d.duty.length + " personnel on duty. View day details.")}"><span class="calendar-date-top"><strong>${+date.slice(-2)}</strong>${date === today() ? "<small>Today</small>" : ""}</span><span class="calendar-duty-total">${d.duty.length} <span>on duty</span></span>${eventText}${d.events.length > 2 ? `<span class="calendar-extra">+${d.events.length - 2} more events</span>` : ""}${primary ? '<span class="calendar-duty-summary">' + primary + "</span>" : ""}${other ? '<span class="calendar-duty-summary secondary">' + other + "</span>" : ""}${names}</button>`;
+      return `<button class="calendar-date ${weekend ? "weekend" : ""} ${date === today() ? "is-today" : ""} ${date === selected ? "selected" : ""}" type="button" data-calendar-day="${date}" aria-pressed="${date === selected}" aria-label="${h(formatDate(date, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) + ", " + d.events.length + " activities, " + d.duty.length + " personnel on duty. View day details.")}"><span class="calendar-date-top"><strong>${+date.slice(-2)}</strong>${date === today() ? "<small>Today</small>" : ""}</span><span class="calendar-duty-total">${d.duty.length} <span>on duty</span></span>${eventText}${d.rows.some((r) => r.assignment?.code === "CANCELLED") ? `<span class="calendar-extra">⚠ ${d.rows.filter((r) => r.assignment?.code === "CANCELLED").length} to reassign</span>` : ""}${d.events.length > 2 ? `<span class="calendar-extra">+${d.events.length - 2} more events</span>` : ""}${primary ? '<span class="calendar-duty-summary">' + primary + "</span>" : ""}${other ? '<span class="calendar-duty-summary secondary">' + other + "</span>" : ""}${names}</button>`;
     })
     .join("");
 }
@@ -120,7 +127,7 @@ export function dayEventsMarkup(day) {
             `<button type="button" class="day-event-button ${e.status === "cancelled" ? "cancelled" : ""}" data-event="${e.id}"><span><strong>${h(e.title)}</strong><small>${h(e.location)}</small></span><span class="day-event-time">${h(e.call_time.slice(0, 5))} PHT<small>${h(e.status)}</small></span></button>`,
         )
         .join("")
-    : '<p class="day-empty">No MBD events scheduled.</p>';
+    : '<p class="day-empty">No activities scheduled.</p>';
 }
 export function dayPersonnelMarkup(model, day, filter, admin) {
   const rows = filterDayPersonnel(day, filter);
@@ -135,9 +142,9 @@ export function dayPersonnelMarkup(model, day, filter, admin) {
       ]
         .filter(Boolean)
         .join(" · ");
-      const clickable = admin || a?.code === "MBD";
+      const clickable = admin || Boolean(a);
       const badge = clickable
-        ? `<button type="button" class="shift ${a ? CLASSES[a.code] : "empty"}" data-person="${person.id}" data-date="${day.date}" aria-label="${h(person.name + ", " + (a?.code || "unassigned") + ", " + formatDate(day.date))}">${h(a?.code || "Assign")}</button>`
+        ? `<button type="button" class="shift ${a ? CLASSES[a.code] : "empty"}" data-person="${person.id}" data-date="${day.date}" aria-label="${h(person.name + ", " + (a?.code || "unassigned") + ", " + formatDate(day.date))}">${h(a?.code === "CANCELLED" ? "⚠ Reassign" : a?.code || "Assign")}</button>`
         : `<span class="shift readonly ${a ? CLASSES[a.code] : "empty"}">${h(a?.code || "—")}</span>`;
       return `<article class="day-personnel-row"><div><strong>${h(person.name)}</strong><small>${h(person.role_label)}${person.active ? "" : " · Archived"}</small>${detail ? "<p>" + h(detail) + "</p>" : ""}</div><div class="day-duty-badge">${badge}<small>${h(a ? CODES[a.code] : "Unassigned")}</small></div></article>`;
     })

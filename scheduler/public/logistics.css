@@ -1,0 +1,84 @@
+.companion-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.companion-lines li {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid #e1e7ef;
+}
+.companion-lines li strong {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.companion-lines li span {
+  font-size: 0.85rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+.driver-warning {
+  background: #fff4db;
+  border: 1px solid #e0b454;
+  border-radius: 8px;
+  padding: 12px;
+  color: #70460b;
+  margin: 8px 0;
+  line-height: 1.5;
+}
+.shift.cancelled-duty {
+  background: #fff2db !important;
+  color: #923807 !important;
+  border: 2px solid #d49520;
+  min-height: 40px;
+}
+.shift.cancelled-duty strong {
+  font-size: inherit;
+}
+.legend-dot.cancelled-duty {
+  background: #d49520;
+}
+.duty-tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  white-space: pre-line;
+  background: #253c57;
+  color: #fff;
+  border-radius: 8px;
+  padding: 12px 15px;
+  max-width: min(400px, calc(100vw - 16px));
+  max-height: 65vh;
+  overflow: hidden;
+  box-shadow: 0 8px 24px #0003;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.duty-tooltip[hidden] {
+  display: none;
+}
+@media (max-width: 650px) {
+  .companion-lines li {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .detail-grid dd {
+    overflow-wrap: anywhere;
+  }
+}
+@media print {
+  .duty-tooltip {
+    display: none !important;
+  }
+  .shift.cancelled-duty {
+    color: #222 !important;
+    border: 1px solid #555;
+    background: #fff !important;
+  }
+  .shift.cancelled-duty strong {
+    font-size: inherit;
+  }
+}

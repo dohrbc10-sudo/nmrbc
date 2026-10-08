@@ -1,4 +1,5 @@
-import { today, monthEnd, datesBetween, parseDate } from "./core.js";
+import { TITLES, eventDuty, roleOf } from "./logistics.js";
+import { CODES, today, monthEnd, datesBetween, parseDate } from "./core.js";
 const KEY = "nmrbc-demo-v1";
 const uid = () => crypto.randomUUID();
 const now = () => new Date().toISOString();
@@ -19,7 +20,15 @@ function seed() {
     id: uid(),
     name,
     role_label:
-      i < 6 ? "Medical technologist" : i < 8 ? "Nurse" : "Support staff",
+      i < 6
+        ? "MT"
+        : i === 6
+          ? "HPO"
+          : i === 7
+            ? "MO"
+            : i === 8
+              ? "Regular"
+              : "Driver",
     sort_order: i,
     active: true,
     version: 1,
@@ -86,7 +95,18 @@ function seed() {
     });
   }
   events.forEach((e) => delete e.crew);
-  return { personnel: people, events, assignments, changes: [] };
+  return {
+    personnel: people,
+    events,
+    assignments,
+    changes: [],
+    catalog: TITLES.map((name) => ({
+      id: uid(),
+      kind: "title",
+      name,
+      details: "",
+    })),
+  };
 }
 export class DemoStore {
   constructor() {
@@ -98,6 +118,12 @@ export class DemoStore {
     } catch {
       this.data = seed();
     }
+    this.data.catalog ||= TITLES.map((name) => ({
+      id: uid(),
+      kind: "title",
+      name,
+      details: "",
+    }));
     localStorage.setItem(KEY, JSON.stringify(this.data));
   }
   async load() {
@@ -111,6 +137,7 @@ export class DemoStore {
   }
   async write(name, args) {
     this.reload();
+    this.managingEvent = null;
     const before = structuredClone(this.data);
     try {
       if (!args.p_reason || args.p_reason.trim().length < 3)
@@ -186,8 +213,14 @@ export class DemoStore {
       (x) => x.personnel_id === a.personnel_id && x.work_date === a.work_date,
     );
     this.check(old, a.expected_version);
+    if (a.code === "CANCELLED")
+      throw Error("Cancellation markers are created by cancelling an event.");
     if (!a.code) {
       if (!old) return 0;
+      if (old.code === "CANCELLED")
+        throw Error(
+          "Choose a new duty instead of clearing the cancellation warning.",
+        );
       this.data.assignments.splice(this.data.assignments.indexOf(old), 1);
       this.log("assignments", old, null, reason);
       this.touch(old.event_id);
@@ -195,16 +228,20 @@ export class DemoStore {
     }
     if (!this.data.personnel.find((p) => p.id === a.personnel_id && p.active))
       throw Error("Select active personnel.");
+    if (!CODES[a.code]) throw Error("Choose a valid duty.");
     if (
-      a.code === "MBD" &&
-      !this.data.events.find(
+      a.event_id &&
+      !this.data.events.some(
         (e) =>
           e.id === a.event_id &&
           e.event_date === a.work_date &&
-          e.status !== "cancelled",
+          e.status !== "cancelled" &&
+          eventDuty(e) === a.code,
       )
     )
-      throw Error("Choose an MBD event on the same date.");
+      throw Error("Choose an active activity matching this duty and date.");
+    if (a.code === "MBD" && !a.event_id)
+      throw Error("MBD requires an event on the same date.");
     if (
       old &&
       old.code === a.code &&
@@ -218,7 +255,7 @@ export class DemoStore {
       work_date: a.work_date,
       code: a.code,
       description: a.description || "",
-      event_id: a.code === "MBD" ? a.event_id : null,
+      event_id: a.event_id || null,
       version: this.nextAssignmentVersion(),
     };
     if (old) this.data.assignments[this.data.assignments.indexOf(old)] = row;
@@ -237,66 +274,148 @@ export class DemoStore {
   }
   touch(id) {
     const e = this.data.events.find((e) => e.id === id);
-    if (e) e.version++;
+    if (e) {
+      e.version++;
+      if (
+        e.driver_personnel_id &&
+        this.managingEvent !== e.id &&
+        !this.data.assignments.some(
+          (a) =>
+            a.event_id === e.id &&
+            a.personnel_id === e.driver_personnel_id &&
+            a.work_date === e.event_date,
+        )
+      ) {
+        const old = structuredClone(e);
+        e.driver_personnel_id = null;
+        this.log("events", old, e, "Driver assignment changed automatically.");
+      }
+    }
   }
   event(a) {
     const old = this.data.events.find((e) => e.id === a.p_id);
     this.check(old, a.p_expected_version);
-    const crew = a.p_event.status === "cancelled" ? [] : a.p_crew;
-    for (const id of crew) {
-      if (!this.data.personnel.some((p) => p.id === id && p.active))
+    const values = {
+      ...a.p_event,
+      assignment_code: eventDuty({ title: a.p_event.title }),
+    };
+    const cancelled = values.status === "cancelled";
+    if (cancelled && old && old.event_date !== values.event_date)
+      throw Error(
+        "Cancel on the original date. Reactivate before moving the event.",
+      );
+    if (
+      values.driver_personnel_id &&
+      !this.data.personnel.some(
+        (p) =>
+          p.id === values.driver_personnel_id &&
+          roleOf(p) === "Driver" &&
+          (p.active || (cancelled && p.id === old?.driver_personnel_id)),
+      )
+    )
+      throw Error("Select active personnel with the Driver designation.");
+    const ids = new Set(
+      cancelled && old
+        ? this.data.assignments
+            .filter((x) => x.event_id === old.id)
+            .map((x) => x.personnel_id)
+        : [
+            ...a.p_crew,
+            ...(values.driver_personnel_id ? [values.driver_personnel_id] : []),
+          ],
+    );
+    for (const id of ids) {
+      if (
+        !this.data.personnel.some(
+          (p) =>
+            p.id === id &&
+            (p.active ||
+              (cancelled &&
+                this.data.assignments.some(
+                  (x) => x.personnel_id === id && x.event_id === old?.id,
+                ))),
+        )
+      )
         throw Error("Choose active personnel.");
       const conflict = this.data.assignments.find(
         (x) =>
           x.personnel_id === id &&
-          x.work_date === a.p_event.event_date &&
-          (!old || x.event_id !== old.id),
+          x.work_date === values.event_date &&
+          x.code !== "CANCELLED" &&
+          x.event_id !== old?.id,
       );
       if (conflict)
         throw Error(
           `${this.data.personnel.find((p) => p.id === id).name} already has an assignment on this date. Clear that cell first.`,
         );
     }
-    if (old) {
+    this.managingEvent = old?.id;
+    if (old && !cancelled)
       for (const x of [...this.data.assignments].filter(
         (x) =>
           x.event_id === old.id &&
-          (x.work_date !== a.p_event.event_date ||
-            !crew.includes(x.personnel_id)),
-      ))
-        this.assignment(
-          { ...x, code: "", expected_version: x.version },
-          a.p_reason,
-        );
-    }
+          (x.work_date !== values.event_date || !ids.has(x.personnel_id)),
+      )) {
+        this.data.assignments.splice(this.data.assignments.indexOf(x), 1);
+        this.log("assignments", x, null, a.p_reason);
+        this.touch(old.id);
+      }
     const row = {
-      ...a.p_event,
+      ...values,
       id: old?.id || uid(),
       version: (old?.version || 0) + 1,
     };
     if (old) this.data.events[this.data.events.indexOf(old)] = row;
     else this.data.events.push(row);
     this.log("events", old, row, a.p_reason);
-    for (const id of crew) {
-      if (
-        !this.data.assignments.some(
-          (x) =>
-            x.personnel_id === id &&
-            x.event_id === row.id &&
-            x.work_date === row.event_date,
-        )
-      )
+    this.managingEvent = row.id;
+    for (const id of ids) {
+      const cell = this.data.assignments.find(
+        (x) => x.personnel_id === id && x.work_date === row.event_date,
+      );
+      if (cancelled) {
+        if (cell?.code === "CANCELLED" && cell.event_id === row.id) continue;
+        const marker = {
+          id: cell?.id || uid(),
+          personnel_id: id,
+          work_date: row.event_date,
+          code: "CANCELLED",
+          event_id: row.id,
+          description: "Event cancelled. Needs reassignment.",
+          version: this.nextAssignmentVersion(),
+        };
+        if (cell)
+          this.data.assignments[this.data.assignments.indexOf(cell)] = marker;
+        else this.data.assignments.push(marker);
+        this.log("assignments", cell, marker, a.p_reason);
+        this.touch(row.id);
+      } else
         this.assignment(
           {
             personnel_id: id,
             work_date: row.event_date,
-            code: "MBD",
+            code: row.assignment_code,
             event_id: row.id,
-            expected_version: 0,
+            description: "",
+            expected_version: cell?.version || 0,
           },
           a.p_reason,
         );
     }
+    const remember = (kind, name, details = "") => {
+      if (!name?.trim()) return;
+      const existing = this.data.catalog.find(
+        (c) =>
+          c.kind === kind && c.name.toLowerCase() === name.trim().toLowerCase(),
+      );
+      if (existing) {
+        if (kind === "vehicle") existing.details = details;
+      } else
+        this.data.catalog.push({ id: uid(), kind, name: name.trim(), details });
+    };
+    this.managingEvent = null;
+    remember("title", row.title);
+    remember("vehicle", row.vehicle_name, row.vehicle_details || "");
     return structuredClone(row);
   }
 }

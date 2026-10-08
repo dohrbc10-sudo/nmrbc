@@ -1,3 +1,17 @@
+import {
+  ROLES,
+  TITLES,
+  roleOf,
+  dutyGroup,
+  eventDuty,
+  orderedPeople,
+  companionsMarkup,
+  driverLabel,
+  needsDriver,
+  shiftCompanions,
+  assignmentTooltip,
+  setupDutyPicker,
+} from "./logistics.js";
 import { createClient } from "./vendor/supabase.js";
 import {
   CODES,
@@ -101,13 +115,17 @@ const field = (label, name, value = "", type = "text", extra = "") =>
   `<label>${label}<input name="${name}" type="${type}" value="${h(value)}" ${extra}></label>`;
 const codeOptions = (selected = "", allowMBD = true) =>
   `<option value="">— Unassigned (clear this cell)</option>` +
-  Object.entries(CODES)
-    .filter(([k]) => allowMBD || k !== "MBD")
+  ["AM", "PM", "MBD", "OFF", "LEAVE", "OFFICE", "TRAINING"]
+    .filter((k) => allowMBD || k !== "MBD")
     .map(
-      ([k, v]) =>
-        `<option value="${k}" ${selected === k ? "selected" : ""}>${k} · ${v}</option>`,
+      (k) =>
+        `<option value="${k}" ${dutyGroup(selected) === k ? "selected" : ""}>${k}</option>`,
     )
     .join("");
+const companionSection = (personId, date, code) =>
+  ["AM", "PM"].includes(dutyGroup(code))
+    ? `<section class="form-full"><h3>Companions on the ${dutyGroup(code)} shift</h3>${companionsMarkup(shiftCompanions(s.data, personId, date, code))}</section>`
+    : "";
 function showError(error) {
   $("errorBanner").textContent = error.message || String(error);
   $("errorBanner").hidden = false;
@@ -148,8 +166,8 @@ function adminUI() {
       : "Administrator · Changes recorded"
     : "Public viewing · Admin editing";
   $("rosterHint").textContent = s.admin
-    ? "Click a cell to edit. Click MBD to view event details and editing options."
-    : "Click an MBD assignment to view its mission details.";
+    ? "Click a cell to edit. Hover for details and companions. ⚠ Reassign means an event was cancelled."
+    : "Hover or tap a duty to view event details or shift companions. ⚠ Reassign means an event was cancelled.";
   if (!s.admin && s.tab === "personnel") s.tab = "roster";
 }
 function render() {
@@ -208,12 +226,16 @@ function render() {
   );
   const counts = {
     am: selected.filter((a) => a.code.startsWith("AM")).length,
-    pm: selected.filter((a) => a.code === "PM").length,
+    pm: selected.filter((a) => a.code.startsWith("PM")).length,
     mbd: selected.filter((a) => a.code === "MBD").length,
   };
   $("stats").innerHTML = [
     [people.length, "Personnel shown", "Across the selected roster"],
-    [counts.am, "AM assignments", "Testing, component & custom"],
+    [
+      counts.am,
+      "AM assignments",
+      "Testing, component, labelling & distribution",
+    ],
     [counts.pm, "PM assignments", "Afternoon duties"],
     [
       counts.mbd,
@@ -238,8 +260,8 @@ function render() {
                   .map((d) => {
                     const a = assignment(person.id, d),
                       e = a?.event_id ? eventBy(a.event_id) : null;
-                    const clickable = s.admin || a?.code === "MBD";
-                    return `<td class="${d === today() ? "today" : ""}"><button class="shift ${a ? CLASSES[a.code] : "empty"} ${clickable ? "" : "readonly"}" data-person="${person.id}" data-date="${d}" ${clickable ? "" : "disabled"} title="${h(a ? CODES[a.code] + (a.description ? " · " + a.description : "") + (e ? " · " + e.title : "") : "Unassigned")}" aria-label="${h(person.name + ", " + formatDate(d) + ", " + (a?.code || "unassigned"))}"><strong>${h(a?.code || "—")}</strong>${a?.description ? `<small>${h(a.description)}</small>` : ""}</button></td>`;
+                    const clickable = s.admin || Boolean(a);
+                    return `<td class="${d === today() ? "today" : ""}"><button class="shift ${a ? CLASSES[a.code] : "empty"} ${clickable ? "" : "readonly"}" data-person="${person.id}" data-date="${d}" ${clickable ? "" : "disabled"} title="${h(assignmentTooltip(a, e, person, s.data))}" data-tooltip="${h(assignmentTooltip(a, e, person, s.data))}" aria-label="${h(person.name + ", " + formatDate(d) + ", " + (a?.code || "unassigned"))}"><strong>${h(a?.code === "CANCELLED" ? "⚠ Reassign" : a?.code || "—")}</strong>${a?.description ? `<small>${h(a.description)}</small>` : ""}</button></td>`;
                   })
                   .join("")}</tr>`,
             )
@@ -251,7 +273,7 @@ function render() {
     `<tfoot><tr><th class="person-col" scope="row">Staffing counts<small>Personnel shown</small></th>${ds
       .map((d) => {
         const rows = selected.filter((a) => a.work_date === d);
-        return `<td class="coverage"><span>AM ${rows.filter((a) => a.code.startsWith("AM")).length}</span><span>PM ${rows.filter((a) => a.code === "PM").length} · MBD ${rows.filter((a) => a.code === "MBD").length}</span></td>`;
+        return `<td class="coverage"><span>AM ${rows.filter((a) => a.code.startsWith("AM")).length}</span><span>PM ${rows.filter((a) => a.code.startsWith("PM")).length} · MBD ${rows.filter((a) => a.code === "MBD").length}</span></td>`;
       })
       .join("")}</tr></tfoot>`,
   );
@@ -300,7 +322,7 @@ function renderCalendar() {
     month: "long",
   });
   $("calendarDayCounts").innerHTML =
-    `<span>${day.duty.length} on duty</span><span>AM ${day.counts.AM}</span><span>PM ${day.counts.PM}</span><span>MBD ${day.counts.MBD}</span><span>${day.unassigned} unassigned</span>`;
+    `<span>${day.duty.length} on duty</span><span>AM ${day.counts.AM}</span><span>PM ${day.counts.PM}</span><span>MBD ${day.counts.MBD}</span><span>${day.unassigned} unassigned</span>${day.rows.some((r) => r.assignment?.code === "CANCELLED") ? `<span class="reassign-count">⚠ ${day.rows.filter((r) => r.assignment?.code === "CANCELLED").length} need reassignment</span>` : ""}`;
   $("calendarDayEvents").innerHTML = dayEventsMarkup(day);
   $("calendarDayPersonnel").innerHTML = dayPersonnelMarkup(
     model,
@@ -327,8 +349,8 @@ function renderEvents() {
         .map(
           (e) =>
             `<article class="event-card"><div class="event-top"><span class="eyebrow">${h(formatDate(e.event_date, { day: "numeric", month: "short", weekday: "short" }))}</span><span class="status ${h(e.status)}">${h(e.status)}</span></div><h3>${h(e.title)}</h3><p class="event-location">${h(e.location)}</p><div class="event-facts"><span><small>Call time</small><strong>${h(e.call_time.slice(0, 5))} PHT</strong></span><span><small>Expected donors</small><strong>${e.expected_donors}</strong></span></div><p class="crew-line"><strong>Team</strong> ${h(
-              crewFor(e.id)
-                .map((p) => p.name)
+              orderedPeople(crewFor(e.id))
+                .map((p) => p.name + " (" + roleOf(p) + ")")
                 .join(", ") || "Not assigned yet",
             )}</p><div class="event-actions"><button class="button outline" data-event="${e.id}">View details →</button>${s.admin ? `<button class="button quiet" data-edit-event="${e.id}">Edit</button>` : ""}</div></article>`,
         )
@@ -337,6 +359,8 @@ function renderEvents() {
 }
 function displayValue(key, value) {
   if (value === null || value === undefined || value === "") return "—";
+  if (key === "driver_personnel_id")
+    return s.data.personnel.find((p) => p.id === value)?.name || "Driver";
   if (key === "event_id") return eventBy(value)?.title || "Linked MBD event";
   if (key === "personnel_id")
     return s.data.personnel.find((p) => p.id === value)?.name || "Personnel";
@@ -357,6 +381,13 @@ function renderChanges() {
     expected_donors: "Expected donors",
     contact_person: "Contact",
     transport: "Transport",
+    driver_personnel_id: "Driver",
+    driver_mode: "Driver source",
+    other_driver_name: "Other driver",
+    rpo_number: "RPO number",
+    vehicle_name: "Vehicle",
+    vehicle_details: "Vehicle details",
+    assignment_code: "Event duty",
     notes: "Details",
     status: "Status",
     personnel_id: "Personnel",
@@ -385,6 +416,10 @@ function renderBalance(people, ds) {
   const groups = [
     "AM/T",
     "AM/C",
+    "AM/L",
+    "AM/D",
+    "PM/T",
+    "CANCELLED",
     "AM",
     "PM",
     "MBD",
@@ -499,27 +534,46 @@ function assignmentForm(personId, date) {
   );
   openDialog(
     `${person.name} · ${formatDate(date)}`,
-    `<form id="assignmentForm" class="form-grid"><label class="form-full">Assignment<select name="code">${codeOptions(a?.code)}</select></label><label class="form-full" id="eventSelectField">MBD event<select name="event_id"><option value="">Choose an event on this date</option>${available.map((e) => `<option value="${e.id}" ${e.id === a?.event_id ? "selected" : ""}>${h(e.title)} · ${h(e.location)}</option>`).join("")}</select><small>Create an event in the MBD events tab if it is not listed.</small></label><label class="form-full">Duty description <textarea name="description" maxlength="500" rows="2" placeholder="Optional details for this duty">${h(a?.description)}</textarea></label>${!person.active ? '<p class="public-note form-full">This personnel record is archived. You can clear an assignment; reactivate the person to assign a new duty.</p>' : ""}${formFoot("Save assignment")}</form>`,
+    `<form id="assignmentForm" class="form-grid">${a?.code === "CANCELLED" ? '<p class="driver-warning form-full">⚠ The linked event was cancelled. Select a new duty to replace this warning.</p>' : ""}<label class="form-full">Assignment<select name="code">${codeOptions(a?.code)}</select></label><label class="form-full" id="eventSelectField">Linked activity<select name="event_id"></select><small>MBD requires an event. Training, Office, and Testing may be linked to a matching activity.</small></label><label class="form-full">Duty description<textarea name="description" maxlength="500" rows="2">${h(a?.description)}</textarea></label><div id="shiftCompanions" class="form-full"></div>${formFoot("Save assignment")}</form>`,
   );
   const form = $("assignmentForm");
+  form.elements.code.required = a?.code === "CANCELLED";
+  let getCode;
   const toggle = () => {
-    $("eventSelectField").hidden = form.elements.code.value !== "MBD";
-    form.elements.event_id.required = form.elements.code.value === "MBD";
+    const code =
+      form.elements.sub_code?.disabled === false
+        ? form.elements.sub_code.value
+        : form.elements.code.value;
+    const choices = available.filter((e) => eventDuty(e) === code);
+    $("eventSelectField").hidden = code !== "MBD" && !choices.length;
+    form.elements.event_id.required = code === "MBD";
+    const previous = form.elements.event_id.value || a?.event_id;
+    form.elements.event_id.innerHTML =
+      '<option value="">' +
+      (code === "MBD" ? "Choose an event" : "No linked activity") +
+      "</option>" +
+      choices
+        .map(
+          (e) =>
+            `<option value="${h(e.id)}" ${e.id === previous ? "selected" : ""}>${h(e.title)} · ${h(e.location)}</option>`,
+        )
+        .join("");
+    $("shiftCompanions").innerHTML = companionSection(personId, date, code);
   };
-  form.elements.code.addEventListener("change", toggle);
-  toggle();
+  getCode = setupDutyPicker(form, a?.code, toggle);
   form.addEventListener("submit", (ev) => {
     ev.preventDefault();
+    const code = getCode();
     save(form, "scheduler_apply_assignments", {
       p_entries: [
         {
           personnel_id: personId,
           work_date: date,
-          code: form.elements.code.value,
+          code,
           description: form.elements.description.value,
           event_id:
-            form.elements.code.value === "MBD"
-              ? form.elements.event_id.value
+            code && !$("eventSelectField").hidden
+              ? form.elements.event_id.value || null
               : null,
           expected_version: a?.version || 0,
         },
@@ -533,7 +587,7 @@ function personnelForm(id = null) {
   const p = s.data.personnel.find((p) => p.id === id);
   openDialog(
     p ? "Edit personnel" : "Add personnel",
-    `<form id="personnelForm" class="form-grid">${field("Personnel name", "name", p?.name, "text", 'required maxlength="120"')}${field("Role / designation", "role_label", p?.role_label, "text", 'maxlength="120"')}${field("Display order", "sort_order", p?.sort_order ?? s.data.personnel.length, "number", 'required min="0" max="100000" step="1"')}<label class="checkbox-label"><input type="checkbox" name="active" ${p?.active !== false ? "checked" : ""}> Active personnel</label><p class="public-note form-full">Archiving hides a person from new assignments and preserves their existing schedules and history.</p>${formFoot(p ? "Save personnel" : "Add personnel")}</form>`,
+    `<form id="personnelForm" class="form-grid">${field("Personnel name", "name", p?.name, "text", 'required maxlength="120"')}${`<label>Role / designation<select name="role_label" required>${p && !ROLES.includes(roleOf(p)) ? `<option value="" disabled selected>Choose designation (previous: ${h(p.role_label)})</option>` : ""}${ROLES.map((r) => `<option ${roleOf(p) === r ? "selected" : ""}>${r}</option>`).join("")}</select></label>`}${field("Display order", "sort_order", p?.sort_order ?? s.data.personnel.length, "number", 'required min="0" max="100000" step="1"')}<label class="checkbox-label"><input type="checkbox" name="active" ${p?.active !== false ? "checked" : ""}> Active personnel</label><p class="public-note form-full">Archiving hides a person from new assignments and preserves their existing schedules and history.</p>${formFoot(p ? "Save personnel" : "Add personnel")}</form>`,
   );
   const form = $("personnelForm");
   form.addEventListener("submit", (ev) => {
@@ -554,16 +608,22 @@ function eventDetails(id, personId = null, date = null) {
   if (!e) return;
   const crew = crewFor(id);
   openDialog(
-    "MBD event details",
-    `<div class="detail-hero"><span class="status ${h(e.status)}">${h(e.status)}</span><h3>${h(e.title)}</h3><p>${h(e.location)}</p><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.location)}" target="_blank" rel="noopener noreferrer">Open location in Maps ↗</a></div><dl class="detail-grid"><div><dt>Event date</dt><dd>${h(formatDate(e.event_date))}</dd></div><div><dt>Call time · Philippine time</dt><dd>${h(e.call_time.slice(0, 5))} PHT${e.end_time ? " · Ends " + h(e.end_time.slice(0, 5)) : ""}</dd></div><div><dt>Expected donors</dt><dd>${e.expected_donors}</dd></div><div><dt>Transport / meeting point</dt><dd>${h(e.transport || "To be confirmed")}</dd></div><div><dt>Companions</dt><dd>${h(crew.map((p) => p.name).join(", ") || "Not assigned yet")}</dd></div><div><dt>Contact person</dt><dd>${h(e.contact_person || "To be confirmed")}</dd></div></dl><div class="detail-notes"><h4>Additional details</h4><p>${h(e.notes || "No additional instructions.")}</p></div><div class="form-actions"><button class="button outline" id="calendarDownload">Add to calendar</button>${s.admin ? `<button class="button primary" data-edit-event="${e.id}">Edit event & team</button>${personId ? '<button class="button outline" id="editMbdCell">Change this assignment</button>' : ""}` : ""}</div>`,
+    "Activity details",
+    `<div class="detail-hero"><span class="status ${h(e.status)}">${h(e.status)}</span><h3>${h(e.title)}</h3><p>${h(e.location)}</p><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.location)}" target="_blank" rel="noopener noreferrer">Open location in Maps ↗</a></div>${e.status === "cancelled" ? '<p class="driver-warning">⚠ Cancelled. Personnel still marked ⚠ Reassign need a new assignment.</p>' : ""}${needsDriver(e, s.data) ? '<p class="driver-warning" role="status">⚠ No driver confirmed. Driver arrangement is pending.</p>' : ""}<dl class="detail-grid"><div><dt>Event date</dt><dd>${h(formatDate(e.event_date))}</dd></div><div><dt>Call time · Philippine time</dt><dd>${h(e.call_time.slice(0, 5))} PHT${e.end_time ? " · Ends " + h(e.end_time.slice(0, 5)) : ""}</dd></div><div><dt>Expected donors</dt><dd>${e.expected_donors}</dd></div><div><dt>RPO number</dt><dd>${h(e.rpo_number || "Not entered")}</dd></div><div><dt>Vehicle</dt><dd>${h(e.vehicle_name || "For arrangement")}<p>${h(e.vehicle_details || "")}</p></dd></div><div><dt>Driver</dt><dd>${h(driverLabel(e, s.data.personnel))}</dd></div><div><dt>Transport / meeting point</dt><dd>${h(e.transport || "To be confirmed")}</dd></div><div><dt>Companions</dt><dd>${companionsMarkup(crew, e)}</dd></div><div><dt>Contact person</dt><dd>${h(e.contact_person || "To be confirmed")}</dd></div></dl><div class="detail-notes"><h4>Additional details</h4><p>${h(e.notes || "No additional instructions.")}</p></div><div class="form-actions"><button class="button outline" id="calendarDownload">Add to calendar</button>${s.admin ? `<button class="button primary" data-edit-event="${e.id}">Edit event & team</button>${personId ? '<button class="button outline" id="editMbdCell">Change this assignment</button>' : ""}` : ""}</div>`,
   );
   $("calendarDownload").onclick = () =>
     download(
       calendarFile(
         e,
-        crew.map((p) => p.name),
+        orderedPeople(crew)
+          .map((p) => `${p.name} (${roleOf(p)})`)
+          .concat(
+            e.driver_mode === "other"
+              ? [`${e.other_driver_name || "For arrangement"} (Driver)`]
+              : [],
+          ),
       ),
-      "mbd-" + e.event_date + ".ics",
+      "event-" + e.event_date + ".ics",
       "text/calendar",
     );
   if (s.admin && personId)
@@ -572,27 +632,85 @@ function eventDetails(id, personId = null, date = null) {
 function eventForm(id = null, prefillDate = null) {
   if (!s.admin) return;
   const e = eventBy(id),
-    crew = crewFor(id).map((p) => p.id);
-  const date = e?.event_date || prefillDate || selection().start;
+    crew = crewFor(id).map((p) => p.id),
+    date = e?.event_date || prefillDate || selection().start;
+  const catalog = s.data.catalog || [];
+  const titles = [
+    ...new Set([
+      ...TITLES,
+      ...catalog.filter((c) => c.kind === "title").map((c) => c.name),
+      ...s.data.events.map((x) => x.title),
+    ]),
+  ];
+  const vehicles = [
+    ...new Set([
+      ...catalog.filter((c) => c.kind === "vehicle").map((c) => c.name),
+      ...s.data.events.map((x) => x.vehicle_name).filter(Boolean),
+    ]),
+  ];
+  const drivers = s.data.personnel.filter(
+    (p) =>
+      (p.active || p.id === e?.driver_personnel_id) && roleOf(p) === "Driver",
+  );
   openDialog(
-    e ? "Edit MBD event & team" : "Add MBD event",
-    `<form id="eventForm" class="form-grid">${field("Event title", "title", e?.title, "text", 'required maxlength="160"')}${field("Event date", "event_date", date, "date", "required")}${field("Location / venue", "location", e?.location, "text", 'required maxlength="300"')}${field("Call time · Philippine time", "call_time", e?.call_time?.slice(0, 5) || "07:00", "time", "required")}${field("End time (optional)", "end_time", e?.end_time?.slice(0, 5), "time")}${field("Expected donors", "expected_donors", e?.expected_donors ?? 0, "number", 'required min="0" max="100000" step="1"')}${field("Contact person (public)", "contact_person", e?.contact_person, "text", 'maxlength="160"')}${field("Transport / meeting point", "transport", e?.transport, "text", 'maxlength="300"')}<label>Status<select name="status">${["planned", "confirmed", "cancelled"].map((v) => `<option ${e?.status === v ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="form-full">Additional details<textarea name="notes" rows="3" maxlength="2000">${h(e?.notes)}</textarea></label><fieldset class="form-full"><legend>Companions / assigned personnel</legend><p class="muted small">Selecting a person creates their MBD roster cell. An existing duty must be cleared first. Moving this event moves its selected crew; cancellation clears its MBD cells.</p><div class="crew-picker">${
-      s.data.personnel
-        .filter((p) => p.active || crew.includes(p.id))
+    e ? "Edit activity & team" : "Add MBD event / activity",
+    `<form id="eventForm" class="form-grid"><label>Event title<select name="title_choice">${titles.map((t) => `<option value="${h(t)}" ${t === (e?.title || TITLES[0]) ? "selected" : ""}>${h(t)}</option>`).join("")}<option value="__other">Other — add a title</option></select></label>${field("New event title", "title", "", "text", 'maxlength="160"')}${field("Event date", "event_date", date, "date", "required")}${field("Location / venue", "location", e?.location, "text", 'required maxlength="300"')}${field("Call time · Philippine time", "call_time", e?.call_time?.slice(0, 5) || "07:00", "time", "required")}${field("End time (optional)", "end_time", e?.end_time?.slice(0, 5), "time")}${field("Expected donors", "expected_donors", e?.expected_donors ?? 0, "number", 'required min="0" max="100000" step="1"')}${field("RPO number", "rpo_number", e?.rpo_number, "text", 'maxlength="120"')}<label>Vehicle<select name="vehicle_choice"><option value="">For arrangement / no vehicle</option>${vehicles.map((v) => `<option value="${h(v)}" ${v === e?.vehicle_name ? "selected" : ""}>${h(v)}</option>`).join("")}<option value="__other">Other — add a vehicle</option></select></label>${field("New vehicle name", "vehicle_name", "", "text", 'maxlength="160"')}<label class="form-full">Vehicle details<textarea name="vehicle_details" rows="2" maxlength="1000">${h(e?.vehicle_details)}</textarea></label><label>Driver from personnel<select name="driver_personnel_id"><option value="">For arrangement — no driver selected</option>${drivers.map((p) => `<option value="${h(p.id)}" ${p.id === e?.driver_personnel_id ? "selected" : ""}>${h(p.name)} · Driver${p.active ? "" : " (archived)"}</option>`).join("")}</select></label><label class="checkbox-label"><input type="checkbox" name="other_driver" ${e?.driver_mode === "other" ? "checked" : ""}> Other driver / arrange externally</label>${field("Other driver's name (leave blank if pending)", "other_driver_name", e?.other_driver_name, "text", 'maxlength="120"')}<p id="driverWarning" class="driver-warning form-full" role="status"></p>${field("Contact person (public)", "contact_person", e?.contact_person, "text", 'maxlength="160"')}${field("Transport / meeting point", "transport", e?.transport, "text", 'maxlength="300"')}<label>Status<select name="status">${["planned", "confirmed", "cancelled"].map((v) => `<option ${e?.status === v ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="form-full">Additional details<textarea name="notes" rows="3" maxlength="2000">${h(e?.notes)}</textarea></label><fieldset class="form-full"><legend>Companions / assigned personnel</legend><p class="muted small">The selected personnel driver is included automatically. Other duties must be cleared first. Cancellation leaves a warning until each person is reassigned.</p><div class="crew-picker">${
+      orderedPeople(
+        s.data.personnel.filter(
+          (p) => (p.active || crew.includes(p.id)) && roleOf(p) !== "Driver",
+        ),
+      )
         .map(
           (p) =>
-            `<label class="checkbox-label"><input type="checkbox" name="crew" value="${p.id}" ${crew.includes(p.id) ? "checked" : ""}> ${h(p.name)}${p.active ? "" : " (archived; uncheck to save)"}</label>`,
+            `<label class="checkbox-label"><input type="checkbox" name="crew" value="${p.id}" ${crew.includes(p.id) ? "checked" : ""}> ${h(p.name)} · ${h(roleOf(p))}${p.active ? "" : " (archived)"}</label>`,
         )
-        .join("") || "<p>Add personnel before assigning a team.</p>"
+        .join("") || "Add personnel to assign a team."
     }</div></fieldset>${formFoot("Save event & team")}</form>`,
   );
-  const form = $("eventForm");
+  const form = $("eventForm"),
+    f = form.elements;
+  const titleToggle = () => {
+    const other = f.title_choice.value === "__other";
+    f.title.closest("label").hidden = !other;
+    f.title.required = other;
+  };
+  const vehicleToggle = (changed = false) => {
+    const other = f.vehicle_choice.value === "__other";
+    f.vehicle_name.closest("label").hidden = !other;
+    f.vehicle_name.required = other;
+    if (changed)
+      f.vehicle_details.value =
+        catalog.find(
+          (c) => c.kind === "vehicle" && c.name === f.vehicle_choice.value,
+        )?.details ||
+        s.data.events.find((x) => x.vehicle_name === f.vehicle_choice.value)
+          ?.vehicle_details ||
+        "";
+  };
+  const driverToggle = () => {
+    const external = f.other_driver.checked;
+    f.driver_personnel_id.disabled = external;
+    f.other_driver_name.closest("label").hidden = !external;
+    const missing = external
+      ? !f.other_driver_name.value.trim()
+      : !f.driver_personnel_id.value;
+    $("driverWarning").hidden = !missing;
+    $("driverWarning").textContent =
+      "⚠ No driver confirmed. You may save while driver arrangements are pending.";
+  };
+  f.title_choice.onchange = titleToggle;
+  f.vehicle_choice.onchange = () => vehicleToggle(true);
+  f.other_driver.onchange = driverToggle;
+  f.driver_personnel_id.onchange = driverToggle;
+  f.other_driver_name.oninput = driverToggle;
+  titleToggle();
+  vehicleToggle();
+  driverToggle();
   form.addEventListener("submit", (ev) => {
     ev.preventDefault();
-    const values = Object.fromEntries(new FormData(form));
-    const p_event = {};
+    const v = Object.fromEntries(new FormData(form)),
+      p_event = {};
     for (const k of [
-      "title",
       "event_date",
       "location",
       "call_time",
@@ -601,17 +719,46 @@ function eventForm(id = null, prefillDate = null) {
       "transport",
       "notes",
       "status",
+      "rpo_number",
+      "vehicle_details",
     ])
-      p_event[k] = values[k];
-    p_event.expected_donors = Number(values.expected_donors);
+      p_event[k] = v[k];
+    p_event.title =
+      f.title_choice.value === "__other"
+        ? f.title.value.trim()
+        : f.title_choice.value;
+    p_event.vehicle_name =
+      f.vehicle_choice.value === "__other"
+        ? f.vehicle_name.value.trim()
+        : f.vehicle_choice.value;
+    p_event.expected_donors = Number(v.expected_donors);
+    p_event.driver_mode = f.other_driver.checked ? "other" : "personnel";
+    p_event.driver_personnel_id = f.other_driver.checked
+      ? null
+      : f.driver_personnel_id.value || null;
+    p_event.other_driver_name = f.other_driver.checked
+      ? f.other_driver_name.value.trim()
+      : "";
+    p_event.assignment_code = eventDuty({ title: p_event.title });
+    const selected = new Set(new FormData(form).getAll("crew"));
+    if (p_event.driver_personnel_id) selected.add(p_event.driver_personnel_id);
     save(form, "scheduler_save_event", {
       p_id: id,
       p_expected_version: e?.version || 0,
       p_event,
-      p_crew: new FormData(form).getAll("crew"),
-      p_reason: "MBD event and team updated automatically.",
+      p_crew: [...selected],
+      p_reason: "Activity and team updated automatically.",
     });
   });
+}
+function shiftDetails(personId, date) {
+  const p = s.data.personnel.find((p) => p.id === personId),
+    a = assignment(personId, date);
+  if (!a) return;
+  openDialog(
+    `${p.name} · ${formatDate(date)}`,
+    `<div class="detail-hero"><h3>${h(CODES[a.code] || a.code)}</h3><p>${h(a.description || "No additional instructions.")}</p></div>${companionSection(personId, date, a.code) || "<p>No shift companion list for this duty.</p>"}`,
+  );
 }
 function bulkForm() {
   if (!s.admin) return;
@@ -623,6 +770,7 @@ function bulkForm() {
     `<form id="bulkForm" class="form-grid">${field("From", "from", p.start, "date", `required min="${p.start}" max="${p.end}"`)}${field("Through", "through", p.end, "date", `required min="${p.start}" max="${p.end}"`)}<label>Assignment<select name="code" required>${codeOptions("", false).replace('<option value="">— Unassigned (clear this cell)</option>', '<option value="">Choose a duty</option>')}</select></label><label>Duty description<input name="description" maxlength="500"></label><label class="checkbox-label"><input type="checkbox" name="weekdays" checked> Weekdays only</label><label class="checkbox-label"><input type="checkbox" name="replace"> Replace existing duties</label><fieldset class="form-full"><legend>Personnel</legend><div class="crew-picker">${people.map((p) => `<label class="checkbox-label"><input type="checkbox" name="people" value="${p.id}" ${p.id === s.filter ? "checked" : ""}> ${h(p.name)}</label>`).join("")}</div></fieldset><p class="public-note form-full">Existing duties are skipped unless replacement is checked. MBD teams are assigned from the event editor. The whole range saves together, or nothing is changed if a conflict is found.</p>${formFoot("Apply assignments")}</form>`,
   );
   const form = $("bulkForm");
+  const getCode = setupDutyPicker(form);
   form.addEventListener("submit", (ev) => {
     ev.preventDefault();
     const fd = new FormData(form),
@@ -647,11 +795,11 @@ function bulkForm() {
         const old = snapshot.find(
           (a) => a.personnel_id === id && a.work_date === date,
         );
-        if (old && !fd.has("replace")) continue;
+        if (old && old.code !== "CANCELLED" && !fd.has("replace")) continue;
         entries.push({
           personnel_id: id,
           work_date: date,
-          code: fd.get("code"),
+          code: getCode(),
           description: fd.get("description"),
           event_id: null,
           expected_version: old?.version || 0,
@@ -766,6 +914,45 @@ async function authState() {
   render();
 }
 function bind() {
+  const tip = document.createElement("div");
+  tip.className = "duty-tooltip";
+  tip.hidden = true;
+  tip.setAttribute("role", "tooltip");
+  document.body.append(tip);
+  const hide = () => (tip.hidden = true);
+  const show = (target, x, y) => {
+    if (!target?.dataset.tooltip) return hide();
+    tip.textContent = target.dataset.tooltip;
+    tip.hidden = false;
+    const w = tip.offsetWidth,
+      h = tip.offsetHeight;
+    tip.style.left = Math.max(8, Math.min(x + 14, innerWidth - w - 8)) + "px";
+    tip.style.top = Math.max(8, Math.min(y + 14, innerHeight - h - 8)) + "px";
+  };
+  document.addEventListener("pointerover", (ev) => {
+    if (ev.pointerType !== "touch")
+      show(ev.target.closest("[data-tooltip]"), ev.clientX, ev.clientY);
+  });
+  document.addEventListener("pointerout", (ev) => {
+    if (
+      ev.target.closest("[data-tooltip]") &&
+      !ev.target.closest("[data-tooltip]").contains(ev.relatedTarget)
+    )
+      hide();
+  });
+  document.addEventListener("focusin", (ev) => {
+    const t = ev.target.closest("[data-tooltip]");
+    if (t) {
+      const r = t.getBoundingClientRect();
+      show(t, r.left, r.bottom);
+    }
+  });
+  document.addEventListener("focusout", hide);
+  document.addEventListener("click", hide);
+  document.addEventListener("scroll", hide, true);
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") hide();
+  });
   document.addEventListener("click", (ev) => {
     const b = ev.target.closest("button");
     if (!b || b.disabled) return;
@@ -792,9 +979,12 @@ function bind() {
     if (b.dataset.editPerson) personnelForm(b.dataset.editPerson);
     if (b.dataset.person) {
       const a = assignment(b.dataset.person, b.dataset.date);
-      if (a?.code === "MBD")
+      if (a?.event_id && a.code !== "CANCELLED")
         eventDetails(a.event_id, b.dataset.person, b.dataset.date);
       else if (s.admin) assignmentForm(b.dataset.person, b.dataset.date);
+      else if (a?.event_id)
+        eventDetails(a.event_id, b.dataset.person, b.dataset.date);
+      else shiftDetails(b.dataset.person, b.dataset.date);
     }
     if (b.hasAttribute("data-close")) closeDialog();
   });
