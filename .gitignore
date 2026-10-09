@@ -1,0 +1,4 @@
+.gmail-secrets*.env
+.gmail-secrets*.env.*
+gmail-client*.json
+client_secret*.json
