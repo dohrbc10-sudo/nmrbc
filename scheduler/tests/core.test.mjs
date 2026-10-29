@@ -87,3 +87,14 @@ test("Reminder email preview includes CrimsonCore branding without losing schedu
   assert.match(message.text, /Vehicle: Van/);
   assert.equal(message.to[0], "recipient@example.test");
 });
+
+test("Header shows a separate clickable CrimsonCore link beside Personnel scheduling", () => {
+  const markup = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+  const topbar = markup.split('<header class="topbar">')[1]?.split("</header>")[0] ?? "";
+  assert.match(topbar, /Personnel scheduling/);
+  assert.match(topbar, /class="brand-group"/);
+  assert.match(topbar, /class="header-powered-by"/);
+  assert.match(topbar, /href="https:\/\/crimsoncore\.online\/"/);
+  assert.match(topbar, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(markup, /<footer class="site-footer">/);
+});
