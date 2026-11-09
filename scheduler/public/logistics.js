@@ -6,6 +6,7 @@ export const TITLES = [
   "Training",
   "NMMC Testing",
   "Meeting",
+  "Monitoring",
 ];
 export const DUTIES = { AM: ["AM/T", "AM/C", "AM/L", "AM/D"], PM: ["PM/T", "PM/C"] };
 export function roleOf(p) {
@@ -20,15 +21,17 @@ export function roleOf(p) {
 }
 export const dutyGroup = (code) =>
   code?.startsWith("AM") ? "AM" : code?.startsWith("PM") ? "PM" : code || "";
-export const eventDuty = (e) =>
-  e?.assignment_code ||
-  (e?.title?.trim().toLowerCase() === "training"
-    ? "TRAINING"
-    : e?.title?.trim().toLowerCase() === "meeting"
-      ? "OFFICE"
-      : e?.title?.trim().toLowerCase() === "nmmc testing"
-        ? "AM/T"
-        : "MBD");
+export const eventDuty = (e) => {
+  const title = (e?.title || "").trim().toLowerCase();
+  // Resolve legacy events whose saved assignment_code was incorrectly MBD.
+  if (/monitoring|field visit|inspection|site visit/.test(title)) return "TRAVEL";
+  if (e?.assignment_code) return e.assignment_code;
+  if (title === "training") return "TRAINING";
+  if (title === "meeting") return "OFFICE";
+  if (title === "nmmc testing") return "AM/T";
+  if (/mobile blood|blood drive|blood donation|\bmbd\b/.test(title)) return "MBD";
+  return "TRAVEL";
+};
 export function orderedPeople(people) {
   return [...people].sort(
     (a, b) =>

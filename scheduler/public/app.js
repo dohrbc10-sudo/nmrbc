@@ -118,7 +118,7 @@ const field = (label, name, value = "", type = "text", extra = "") =>
   `<label>${label}<input name="${name}" type="${type}" value="${h(value)}" ${extra}></label>`;
 const codeOptions = (selected = "", allowMBD = true) =>
   `<option value="">— Unassigned (clear this cell)</option>` +
-  ["AM", "PM", "MBD", "OFF", "LEAVE", "OFFICE", "TRAINING"]
+  ["AM", "PM", "MBD", "TRAVEL", "OFF", "LEAVE", "OFFICE", "TRAINING"]
     .filter((k) => allowMBD || k !== "MBD")
     .map(
       (k) =>
@@ -230,6 +230,7 @@ function render() {
         `<span><i class="legend-dot ${CLASSES[k]}"></i>${h(k)} <small>${h(v)}</small></span>`,
     )
     .join("");
+  const rosterCode = (a) => a?.code === "MBD" && a.event_id && eventBy(a.event_id) && eventDuty(eventBy(a.event_id)) !== "MBD" ? eventDuty(eventBy(a.event_id)) : a?.code;
   const selected = s.data.assignments.filter(
     (a) =>
       ds.includes(a.work_date) && people.some((p) => p.id === a.personnel_id),
@@ -237,7 +238,7 @@ function render() {
   const counts = {
     am: selected.filter((a) => a.code.startsWith("AM")).length,
     pm: selected.filter((a) => a.code.startsWith("PM")).length,
-    mbd: selected.filter((a) => a.code === "MBD").length,
+    mbd: selected.filter((a) => rosterCode(a) === "MBD").length,
   };
   $("stats").innerHTML = [
     [people.length, "Personnel shown", "Across the selected roster"],
@@ -271,7 +272,8 @@ function render() {
                     const a = assignment(person.id, d),
                       e = a?.event_id ? eventBy(a.event_id) : null;
                     const clickable = s.admin || Boolean(a);
-                    return `<td class="${d === today() ? "today" : ""}"><button class="shift ${a ? CLASSES[a.code] : "empty"} ${clickable ? "" : "readonly"}" data-person="${person.id}" data-date="${d}" ${clickable ? "" : "disabled"} title="${h(assignmentTooltip(a, e, person, s.data))}" data-tooltip="${h(assignmentTooltip(a, e, person, s.data))}" aria-label="${h(person.name + ", " + formatDate(d) + ", " + (a?.code || "unassigned"))}"><strong>${h(a?.code === "CANCELLED" ? "⚠  Reassign" : a?.code || "—")}</strong>${a?.description ? `<small>${h(a.description)}</small>` : ""}</button></td>`;
+                    const displayCode = rosterCode(a);
+                    return `<td class="${d === today() ? "today" : ""}"><button class="shift ${a ? CLASSES[displayCode] : "empty"} ${clickable ? "" : "readonly"}" data-person="${person.id}" data-date="${d}" ${clickable ? "" : "disabled"} title="${h(assignmentTooltip(a, e, person, s.data))}" data-tooltip="${h(assignmentTooltip(a, e, person, s.data))}" aria-label="${h(person.name + ", " + formatDate(d) + ", " + (displayCode || "unassigned"))}"><strong>${h(a?.code === "CANCELLED" ? "⚠  Reassign" : displayCode || "—")}</strong>${a?.description ? `<small>${h(a.description)}</small>` : ""}</button></td>`;
                   })
                   .join("")}</tr>`,
             )
@@ -283,7 +285,7 @@ function render() {
     `<tfoot><tr><th class="person-col" scope="row">Staffing counts<small>Personnel shown</small></th>${ds
       .map((d) => {
         const rows = selected.filter((a) => a.work_date === d);
-        return `<td class="coverage"><span>AM ${rows.filter((a) => a.code.startsWith("AM")).length}</span><span>PM ${rows.filter((a) => a.code.startsWith("PM")).length} · MBD ${rows.filter((a) => a.code === "MBD").length}</span></td>`;
+        return `<td class="coverage"><span>AM ${rows.filter((a) => a.code.startsWith("AM")).length}</span><span>PM ${rows.filter((a) => a.code.startsWith("PM")).length} · MBD ${rows.filter((a) => rosterCode(a) === "MBD").length}</span></td>`;
       })
       .join("")}</tr></tfoot>`,
   );
